@@ -4,118 +4,77 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tanapon395/sa-67-example/config"
-	"github.com/tanapon395/sa-67-example/controller"
+	"example/config"
+	"example/controller"
 )
 
 const PORT = "8000"
 
 func main() {
 
-	// open connection database
+	// เปิดการเชื่อมต่อฐานข้อมูล
 	config.ConnectionDB()
 
-	// Generate databases
+	// สร้างตารางฐานข้อมูล
 	config.SetupDatabase()
 
 	r := gin.Default()
 
 	r.Use(CORSMiddleware())
 
-	// เปลี่ยนเส้นทางของกลุ่ม route ให้มี prefix เป็น /api
-	router := r.Group("api")
+	router := r.Group("")
 	{
-		// Booking Routes
-		router.GET("/booked-seats/:showtimeID", controller.GetBookedSeats)
-		router.POST("/book-seats", controller.BookSeats) // เพิ่มเส้นทางสำหรับการจองที่นั่ง
-		router.PATCH("/release-seats", controller.ReleaseSeatsForUnfinishedTickets)
-		router.GET("/bookings/ticket/:ticketid", controller.GetBookingByTicketID)
-		router.GET("/theater/:id", controller.GetTheaterByID)
-		router.GET("/showtimes/:id/time", controller.GetTimeByShowtime)  // เพิ่มเส้นทางสำหรับดึงเวลา showtime
+		// Gender Routes
+		router.GET("/genders", controller.ListGenders)
+		router.GET("/gender/:id", controller.GetGender)
+		router.POST("/genders", controller.CreateGender)
+		router.PATCH("/gender/:id", controller.UpdateGender)
+		router.DELETE("/gender/:id", controller.DeleteGender)
 
-		
-		// Member Routes
-		router.GET("/members", controller.ListMembers)
-		router.GET("/member/:id", controller.GetMember)
-		router.POST("/members", controller.CreateMember)
-		router.PATCH("/members", controller.UpdateMember)
-		router.DELETE("/members/:id", controller.DeleteMember)
-		router.GET("/mrewards/:member_id", controller.GetRewardsByMemberID)
-		router.PATCH("/members/:id", controller.UpdateMemberReward)
-		router.POST("/check-admin-password", controller.CheckAdminPassword)
+		// Department Routes
+		router.GET("/departments", controller.ListDepartments)
+		router.GET("/department/:id", controller.GetDepartment)
+		router.POST("/departments", controller.CreateDepartment)
+		router.PATCH("/department/:id", controller.UpdateDepartment)
+		router.DELETE("/department/:id", controller.DeleteDepartment)
 
-		// Movie Routes
-		router.GET("/movies", controller.ListMovies)         // แสดงรายการหนังทั้งหมด
-		router.GET("/movie/:id", controller.GetMovie)        // แสดงรายละเอียดหนังโดยใช้ ID
-		router.POST("/movies", controller.CreateMovie)       // เพิ่มหนังใหม่พร้อมโปสเตอร์ (รับไฟล์ poster)
-		router.PATCH("/movies/:id", controller.UpdateMovie)  // อัปเดตข้อมูลหนังพร้อมโปสเตอร์ (รับไฟล์ poster)
-		router.DELETE("/movies/:id", controller.DeleteMovie) // ลบหนังโดยใช้ ID
-		router.GET("/movie/:id/poster", controller.GetMoviePosterByID)
-		// Theater Routes
-		router.GET("/theaters", controller.ListTheaters)
+		// Position Routes
+		router.GET("/positions", controller.ListPositions)
+		router.GET("/position/:id", controller.GetPosition)
+		router.POST("/positions", controller.CreatePosition)
+		router.PATCH("/position/:id", controller.UpdatePosition)
+		router.DELETE("/position/:id", controller.DeletePosition)
 
-		// Showtime Routes
-		router.POST("/showtimes", controller.CreateShowTime)
-		router.GET("/showtimes/:id", controller.GetShowTime)
-		router.GET("/showtimes", controller.ListShowTimes)
-		router.PATCH("/showtimes/:id", controller.UpdateShowTime)
-		router.DELETE("/showtimes/:id", controller.DeleteShowTime)
-		router.DELETE("/showtimes", controller.DeleteShowTimeByDetails)// เพิ่มเส้นทางสำหรับการลบโดยใช้รายละเอียด
+		// Specialist Routes
+		router.GET("/specialists", controller.ListSpecialists)
+		router.GET("/specialist/:id", controller.GetSpecialist)
+		router.POST("/specialists", controller.CreateSpecialist)
+		router.PATCH("/specialist/:id", controller.UpdateSpecialist)
+		router.DELETE("/specialist/:id", controller.DeleteSpecialist)
 
-		// Seat Routes
-		router.GET("/seats", controller.ListSeats)
-		router.GET("/seat/:id", controller.GetSeat)
-		router.POST("/seats", controller.CreateSeat)
-		router.PATCH("/seats/:id", controller.UpdateSeat)
-		router.DELETE("/seats/:id", controller.DeleteSeat)
+		// Status Routes
+		router.GET("/statuses", controller.ListStatuses)
+		router.GET("/status/:id", controller.GetStatus)
+		router.POST("/statuses", controller.CreateStatus)
+		router.PATCH("/status/:id", controller.UpdateStatus)
+		router.DELETE("/status/:id", controller.DeleteStatus)
 
-		// Ticket Routes
-		router.GET("/tickets", controller.ListTickets)
-		router.GET("/tickets/:id", controller.GetTicketsById)
-		router.POST("/tickets", controller.CreateTicket)
-		router.PATCH("/ticket/:id", controller.UpdateTicket)
-		router.DELETE("/tickets/:id", controller.DeleteTicket)
-		router.PATCH("/tickets/status/:id", controller.UpdateTicketStatusAndPoints)
+		// Employee Routes
+		router.GET("/employees", controller.ListEmployees)
+		router.GET("/employee/:id", controller.GetEmployee)
+		router.POST("/employees", controller.CreateEmployee)
+		router.PATCH("/employee/:id", controller.UpdateEmployee)
+		router.DELETE("/employee/:id", controller.DeleteEmployee)
 
-		// Payment Routes
-		router.GET("/payments", controller.ListPayments)
-	router.GET("/payment/:id", controller.GetPayment)
-	router.POST("/payments", controller.CreatePayment)
-	router.PATCH("/payments/:id", controller.UpdatePayment)
-	router.DELETE("/payments/:id", controller.DeletePayment)
-	router.GET("/payments/ticket/:ticketid", controller.GetPaymentByTicketID)
-	router.PATCH("/payments/status/:ticketID", controller.UpdatePaymentStatusByTicketID)
-	router.PATCH("/payments/upload-slip", controller.UpdatePaymentSlipByTicketID)
-
-		// Reward Routes
-        router.GET("/rewards/:id", controller.GetReward)        // ดึงข้อมูลรางวัลตาม ID
-        router.POST("/rewards", controller.CreateReward)        // สร้างรางวัล
-        router.PATCH("/rewards/:id", controller.UpdateReward)   // อัปเดตรางวัล
-		router.GET("/rewards/member/:member_id/discount", controller.GetDiscountRewardsByMemberID)
-
-		// CodeReward Routes
-        router.POST("/codereward", controller.CreateCodeReward) // เส้นทางสำหรับสร้างโค้ดแลกเปลี่ยน
-		router.GET("/check-code-reward", controller.GetCodeReward) // เส้นทางสำหรับดึงข้อมูลโค้ดแลกเปลี่ยน
-		router.GET("/checkreward/:reward_code", controller.CheckRewardCode)
-		router.PATCH("/updaterewardstatus/:code", controller.UpdateCodeRewardStatus)
-
-
-		//Ticketcheck Routes
-		router.GET("/checkin/ticket_id", controller.CreateTicketCheck)
-		router.POST("/checkin/:ticket_id", controller.CreateTicketCheck)
-		router.GET("/checkin", controller.GetTicketChecks)
-
-
-
-		// เส้นทางสำหรับการเข้าสู่ระบบ
-		router.POST("/signin", controller.Signin)
+		// Authentication Route
+		router.POST("/auth/signin", controller.EmployeeSignin) // เพิ่มเส้นทางสำหรับการตรวจสอบสิทธิ์
 	}
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
 	})
 
-	// Run the server
+	// เริ่มต้นเซิร์ฟเวอร์
 	r.Run("localhost:" + PORT)
 }
 

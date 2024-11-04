@@ -1,137 +1,47 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from './components/Sidebar/Sidebar';
-import Members from './pages/Member/Member';
-import Analytics from './pages/Analytics/Analytics';
-import Login from './pages/Login/login';
-import Movie from './pages/Movie/Movie';
-//import Home from './pages/Home/home';
-import MyTicket from './pages/MyTicket/myticket';
-import SeatBooking from './pages/SeatBooking/SeatBooking'; // เพิ่มการอิมพอร์ต SeatBooking
-import PaymentDetail from './pages/paymentdetails/paymentdetail';
-import ScanPayment from './pages/scanpayment/scanpayment';
-import Ticket from './pages/ticket/ticket';
-import MovieList from './pages/MovieList/MovieList';
-import ShowtimeManagement from './pages/Showtime/Showtime';
-import MovieBooking from './pages/MovieBooking/MovieBooking';
-import Reward from './pages/Reward/Reward';
-import HistoryPage from './pages/History/History';
-import Table from './pages/ticketstatus/ticketstatus';
-import QrScanner from './pages/Qrscanner/QrScanner';
-import Signup from './pages/Signup/signup';
-import CheckCodeReward from './pages/Checkcodereward/checkcode';
-import MovieTable from './pages/Movie/MovieTable/movietable';
-import MovieEdit from './pages/Movie/MovieEdit/movieedit';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import Cookies from 'js-cookie'; // ตรวจสอบว่ามีการ import ถูกต้อง
+import Login from '../src/authen/login'; // แก้ไขเส้นทางตามที่คุณเก็บไฟล์ Login
+import CreateUser from '../src/page/createuser/createuser'; // แก้ไขเส้นทางตามที่คุณเก็บไฟล์ CreateUser
+import Doctor from '../src/page/docter/docter'; // แก้ไขเส้นทางตามที่คุณเก็บไฟล์ Doctor
 
+function App() {
+  // ดึง position จาก cookies ภายใน React component
+  const position = Cookies.get("position");
 
-const App: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const isLoggedIn = localStorage.getItem('isLogin') === 'true';
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    const isStaff = localStorage.getItem('isStaff') === 'true';
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
 
-    useEffect(() => {
-        if (isLoggedIn) {
-            // กรณีที่ผู้ใช้งานเป็น Admin
-            if (isAdmin) {
-                if (!['/movie', '/showtimes', '/members', '/analytics', '/movies/create', '/movies/edit'].includes(location.pathname)) {
-                    navigate('/movie');
-                }
-            } 
-            // กรณีที่ผู้ใช้งานเป็น Staff
-            else if (isStaff) {
-                if (!['/scanner', '/ticketstatus', '/checkcode'].includes(location.pathname)) {
-                    navigate('/scanner');
-                }
-            } 
-            // กรณีที่ผู้ใช้งานเป็น User ทั่วไป (ไม่ใช่ Admin หรือ Staff)
-            else if (!['/home', '/myticket', '/seatbooking', '/moviebooking', '/reward', '/history','/paymentdetail','/scanpayment','/ticket'].includes(location.pathname)) {
-                navigate('/home');
-            }
-        } 
-        // กรณีที่ผู้ใช้งานยังไม่ได้ล็อกอิน
-        else {
-            if (!['/login', '/Signup'].includes(location.pathname)) {
-                navigate('/login');  // ถ้าไม่ใช่หน้าล็อกอินหรือสมัครสมาชิก ให้ไปที่หน้าล็อกอิน
-            }
-        }
-    }, [isLoggedIn, isAdmin, isStaff, navigate, location.pathname]);
-    
-    useEffect(() => {
-        // ป้องกันการกดปุ่ม Back และ Forward
-        history.pushState(null, null, window.location.href);
-        window.onpopstate = function () {
-            history.go(1);
-        };
+        {/* Routes สำหรับตำแหน่ง Doctor */}
+        {position === 'Doctor' && (
+          <>
+            <Route path="/doctor1" element={<Doctor />} />
+          </>
+        )}
 
-        // ป้องกันการกด F5 หรือปุ่ม Refresh อื่น ๆ
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
-                event.preventDefault();
-            }
-        };
+        {/* Routes สำหรับตำแหน่ง Nurse */}
+        {position === 'Nurse' && (
+          <>
+            {/*<Route path="/n1" element={<NursePage1 />} />*/}
+            {/*<Route path="/n2" element={<NursePage2 />} />*/}
+            {/*<Route path="/n3" element={<NursePage3 />} />*/}
+          </>
+        )}
 
-        // ป้องกันการ reload หรือปิดหน้า
-        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            const message = "Are you sure you want to leave this page? Changes you made may not be saved.";
-            event.returnValue = message;
-            return message;
-        };
+        {/* Routes สำหรับตำแหน่ง Finance */}
+        {position === 'Finance' && (
+          <>
+            <Route path="/finance1" element={<CreateUser />} />
+          </>
+        )}
 
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        // Cleanup listeners on component unmount
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, []);
-
-    return (
-        <div className="app">
-            {isLoggedIn && isAdmin && <Sidebar />}
-            <div className="main-content">
-                <Routes>
-                    
-                    <Route path="/login" element={<Login />} />
-                    
-                    {/* เส้นทางสำหรับผู้ใช้ Admin */}
-                    <Route path="/movie" element={<MovieTable />} />
-                    <Route path="/movies/edit" element={isLoggedIn && isAdmin ? <MovieEdit /> : <Navigate to="/login" />} />
-                    <Route path="/movies/create" element={isLoggedIn && isAdmin ? <Movie /> : <Navigate to="/login" />} />
-                    <Route path="/showtimes" element={isLoggedIn && isAdmin ? <ShowtimeManagement /> : <Navigate to="/login" />} />
-                    <Route path="/members" element={isLoggedIn && isAdmin ? <Members /> : <Navigate to="/login" />} />
-                    <Route path="/analytics" element={isLoggedIn && isAdmin ? <Analytics /> : <Navigate to="/login" />} />
-
-                    {/* เส้นทางสำหรับผู้ใช้ที่ไม่ใช่ Admin */}
-                    <Route path="/home" element={isLoggedIn && !isAdmin ? <MovieList /> : <Navigate to="/login" />} />
-                    <Route path="/myticket" element={isLoggedIn && !isAdmin ? <MyTicket /> : <Navigate to="/login" />} />
-                    <Route path="/seatbooking" element={isLoggedIn && !isAdmin ? <SeatBooking /> : <Navigate to="/login" />}/>
-                    <Route path="/moviebooking" element={isLoggedIn && !isAdmin ? <MovieBooking /> : <Navigate to="/login" />} />
-
-                    {/* เส้นทางสำหรับการชำระเงิน */}
-                    <Route path="/paymentdetail" element={isLoggedIn && !isAdmin ? <PaymentDetail /> : <Navigate to="/login" />} />
-                    <Route path="/scanpayment" element={isLoggedIn && !isAdmin ? <ScanPayment /> : <Navigate to="/login" />} />
-                    <Route path="/ticket" element={isLoggedIn && !isAdmin ? <Ticket /> : <Navigate to="/login" />} />
-
-                     {/* เส้นทางสำหรับการเเลกรางวัล */}
-                    <Route path="/reward" element={isLoggedIn && !isAdmin ? <Reward /> : <Navigate to="/login" />} />
-                    <Route path="/history" element={isLoggedIn && !isAdmin ? <HistoryPage /> : <Navigate to="/login" />} />
-                  
-                  {/*เส้นทางสำหรับสตาฟ*/ }
-                  <Route path="/scanner" element={isLoggedIn && isStaff ? <QrScanner /> : <Navigate to="/login"/>} />
-                    <Route path="/ticketstatus" element={isLoggedIn && isStaff ? <Table /> : <Navigate to="/login"/>} />
-                    <Route path="/checkcode" element={isLoggedIn && isStaff ? <CheckCodeReward /> : <Navigate to="/login"/>} />
-
-                    <Route path="/Signup" element={<Signup />} />
-
-                    <Route path="*" element={<Navigate to="/login" />} />
-                </Routes>
-            </div>
-        </div>
-    );
-};
+        {/* ถ้าไม่มีสิทธิ์เข้าถึง Route จะถูกนำไปที่หน้า Login */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;
