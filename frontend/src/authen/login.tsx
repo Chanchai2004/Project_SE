@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { authenticateUser } from '../services/https/index';
 
 const Login: React.FC = () => {
@@ -13,15 +12,15 @@ const Login: React.FC = () => {
       const response = await authenticateUser(username, password);
 
       if (response) {
-        // เก็บ token, username, position และ id ลงใน cookies
-        Cookies.set("authToken", response.token, { expires: 1 }); // เก็บ token ไว้ 1 วัน
-        Cookies.set("username", response.username, { expires: 1 });
-        Cookies.set("position", response.position, { expires: 1 });
-        Cookies.set("id", response.id.toString(), { expires: 1 });
+        // Save token, username, position, and id to localStorage
+        localStorage.setItem("authToken", response.token);
+        localStorage.setItem("username", response.username);
+        localStorage.setItem("position", response.position);
+        localStorage.setItem("id", response.id.toString());
 
-        // ตรวจสอบตำแหน่งงาน (position)
+        // Check the user's position
         if (response.position === 'Doctor') {
-          navigate('/doctor1'); // เปลี่ยนเส้นทางไปที่ /doctor ถ้า position เป็น Doctor
+          navigate('/doctor1'); // Navigate to /doctor1 if position is Doctor
         } else {
           alert('Login successful, but position is not Doctor.');
         }

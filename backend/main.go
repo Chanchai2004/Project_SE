@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"example/config"
 	"example/controller"
+	"example/middlewares"
 )
 
 const PORT = "8000"
@@ -22,54 +23,57 @@ func main() {
 
 	r.Use(CORSMiddleware())
 
-	router := r.Group("")
+	// เส้นทางที่ไม่ต้องตรวจสอบโทเค็น เช่นการลงชื่อเข้าใช้
+	r.POST("/auth/signin", controller.EmployeeSignin)
+
+	// กลุ่มเส้นทางที่ต้องตรวจสอบโทเค็น
+	protected := r.Group("/")
+	protected.Use(middlewares.Authorizes()) // เรียกใช้ Authorizes middleware เพื่อเช็คโทเค็น
 	{
 		// Gender Routes
-		router.GET("/genders", controller.ListGenders)
-		router.GET("/gender/:id", controller.GetGender)
-		router.POST("/genders", controller.CreateGender)
-		router.PATCH("/gender/:id", controller.UpdateGender)
-		router.DELETE("/gender/:id", controller.DeleteGender)
+		protected.GET("/genders", controller.ListGenders)
+		protected.GET("/gender/:id", controller.GetGender)
+		protected.POST("/genders", controller.CreateGender)
+		protected.PATCH("/gender/:id", controller.UpdateGender)
+		protected.DELETE("/gender/:id", controller.DeleteGender)
 
 		// Department Routes
-		router.GET("/departments", controller.ListDepartments)
-		router.GET("/department/:id", controller.GetDepartment)
-		router.POST("/departments", controller.CreateDepartment)
-		router.PATCH("/department/:id", controller.UpdateDepartment)
-		router.DELETE("/department/:id", controller.DeleteDepartment)
+		protected.GET("/departments", controller.ListDepartments)
+		protected.GET("/department/:id", controller.GetDepartment)
+		protected.POST("/departments", controller.CreateDepartment)
+		protected.PATCH("/department/:id", controller.UpdateDepartment)
+		protected.DELETE("/department/:id", controller.DeleteDepartment)
 
 		// Position Routes
-		router.GET("/positions", controller.ListPositions)
-		router.GET("/position/:id", controller.GetPosition)
-		router.POST("/positions", controller.CreatePosition)
-		router.PATCH("/position/:id", controller.UpdatePosition)
-		router.DELETE("/position/:id", controller.DeletePosition)
+		protected.GET("/positions", controller.ListPositions)
+		protected.GET("/position/:id", controller.GetPosition)
+		protected.POST("/positions", controller.CreatePosition)
+		protected.PATCH("/position/:id", controller.UpdatePosition)
+		protected.DELETE("/position/:id", controller.DeletePosition)
 
 		// Specialist Routes
-		router.GET("/specialists", controller.ListSpecialists)
-		router.GET("/specialist/:id", controller.GetSpecialist)
-		router.POST("/specialists", controller.CreateSpecialist)
-		router.PATCH("/specialist/:id", controller.UpdateSpecialist)
-		router.DELETE("/specialist/:id", controller.DeleteSpecialist)
+		protected.GET("/specialists", controller.ListSpecialists)
+		protected.GET("/specialist/:id", controller.GetSpecialist)
+		protected.POST("/specialists", controller.CreateSpecialist)
+		protected.PATCH("/specialist/:id", controller.UpdateSpecialist)
+		protected.DELETE("/specialist/:id", controller.DeleteSpecialist)
 
 		// Status Routes
-		router.GET("/statuses", controller.ListStatuses)
-		router.GET("/status/:id", controller.GetStatus)
-		router.POST("/statuses", controller.CreateStatus)
-		router.PATCH("/status/:id", controller.UpdateStatus)
-		router.DELETE("/status/:id", controller.DeleteStatus)
+		protected.GET("/statuses", controller.ListStatuses)
+		protected.GET("/status/:id", controller.GetStatus)
+		protected.POST("/statuses", controller.CreateStatus)
+		protected.PATCH("/status/:id", controller.UpdateStatus)
+		protected.DELETE("/status/:id", controller.DeleteStatus)
 
 		// Employee Routes
-		router.GET("/employees", controller.ListEmployees)
-		router.GET("/employee/:id", controller.GetEmployee)
-		router.POST("/employees", controller.CreateEmployee)
-		router.PATCH("/employee/:id", controller.UpdateEmployee)
-		router.DELETE("/employee/:id", controller.DeleteEmployee)
-
-		// Authentication Route
-		router.POST("/auth/signin", controller.EmployeeSignin) // เพิ่มเส้นทางสำหรับการตรวจสอบสิทธิ์
+		protected.GET("/employees", controller.ListEmployees)
+		protected.GET("/employee/:id", controller.GetEmployee)
+		protected.POST("/employees", controller.CreateEmployee)
+		protected.PATCH("/employee/:id", controller.UpdateEmployee)
+		protected.DELETE("/employee/:id", controller.DeleteEmployee)
 	}
 
+	// เส้นทางสำหรับตรวจสอบสถานะของ API
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
 	})
@@ -78,6 +82,7 @@ func main() {
 	r.Run("localhost:" + PORT)
 }
 
+// ฟังก์ชัน CORS middleware
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

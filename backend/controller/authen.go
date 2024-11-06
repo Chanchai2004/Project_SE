@@ -2,21 +2,13 @@ package controller
 
 import (
     "net/http"
-    "time"
-
-    jwt "github.com/golang-jwt/jwt/v4"
     "github.com/gin-gonic/gin"
     "example/config"
     "example/entity"
+    "example/services"
 )
 
-var jwtKey = []byte("your_secret_key")
-
-type Claims struct {
-    Username string `json:"username"`
-    jwt.StandardClaims
-}
-
+// EmployeeSignin handles user sign-in requests
 func EmployeeSignin(c *gin.Context) {
     var loginData struct {
         Username string `json:"username"`
@@ -29,6 +21,7 @@ func EmployeeSignin(c *gin.Context) {
         return
     }
 
+    // Get database connection
     db := config.DB()
     var employee entity.Employee
 
@@ -44,16 +37,15 @@ func EmployeeSignin(c *gin.Context) {
         return
     }
 
-    // Create JWT token with an expiration time of 24 hours
-    expirationTime := time.Now().Add(24 * time.Hour)
-    claims := &Claims{
-        Username: loginData.Username,
-        StandardClaims: jwt.StandardClaims{
-            ExpiresAt: expirationTime.Unix(),
-        },
+    // Set up JwtWrapper with key details for token generation
+    jwtWrapper := services.JwtWrapper{
+        SecretKey:       config.GetSecretKey(), // ใช้คีย์จาก config
+        Issuer:          "AuthService",
+        ExpirationHours: 24,
     }
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    tokenString, err := token.SignedString(jwtKey)
+
+    // Generate the token using JwtWrapper's GenerateToken method
+    tokenString, err := jwtWrapper.GenerateToken(employee.Username) // ใช้ Username แทน Email
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
         return
@@ -63,7 +55,7 @@ func EmployeeSignin(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{
         "id":       employee.ID,
         "username": employee.Username,
-        "position": employee.Position.PositionName, // Return the position of the employee
+        "position": employee.Position.PositionName,
         "token":    tokenString,
     })
 }
