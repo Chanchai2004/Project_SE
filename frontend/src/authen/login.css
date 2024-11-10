@@ -1,0 +1,63 @@
+/* login.css */
+
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+  }
+  
+  .login .login-container {
+    width: 400px;
+    max-width: 90%;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    text-align: center;
+  }
+  
+  .login .login-container .login-logo {
+    width: 100px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .login .login-container .login-form {
+    width: 100%;
+  }
+  
+  .login .login-container .login-form .login-form-item {
+    margin-bottom: 20px;
+  }
+  
+  .login .login-container .login-form .login-form-button {
+    width: 100%;
+    background-color: #1890ff;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login .login-container .login-form .login-form-button:hover {
+    background-color: #40a9ff;
+  }
+  
+  .login .login-container .login-form .login-form-button:focus {
+    outline: none;
+  }
+  
+  .login .login-container .login-link {
+    color: #1890ff;
+    font-size: 0.9em;
+  }
+  
+  .login .login-container .login-link:hover {
+    text-decoration: underline;
+  }
+  
