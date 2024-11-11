@@ -1,0 +1,16 @@
+.sider-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #fff;
+    position: relative;
+  }
+  
+  .logout-button-fixed {
+    position: absolute;
+    bottom: 10px; /* Adjust as needed */
+    width: 100%;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+  

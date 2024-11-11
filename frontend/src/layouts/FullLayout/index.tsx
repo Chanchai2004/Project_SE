@@ -7,9 +7,12 @@ import Doctor1 from "../../pages/doctor/Doctor1";
 import Doctor2 from "../../pages/doctor/Doctor2";
 import Nurse1 from "../../pages/nurse/Nurse1";
 import Nurse2 from "../../pages/nurse/Nurse2";
+import Finance1 from "../../pages/finance/Finance1";
+import Finance2 from "../../pages/finance/Finance2";
 
 import DoctorSidebar from "../../components/Sider/DoctorSidebar";
 import NurseSidebar from "../../components/Sider/NurseSidebar";
+import FinanceSidebar from "../../components/Sider/FinanceSidebar";
 
 const { Content } = Layout;
 
@@ -22,7 +25,9 @@ const FullLayout: React.FC = () => {
       return <DoctorSidebar />;
     } else if (position === "Nurse") {
       return <NurseSidebar />;
-    } else {
+    } else if (position === "Finance Staff") {
+      return <FinanceSidebar />;
+    }else {
       return null; // กรณีที่ไม่พบตำแหน่ง
     }
   };
@@ -57,6 +62,8 @@ const FullLayout: React.FC = () => {
                 <Route path="/doctor2" element={<Doctor2 />} />
                 <Route path="/nurse" element={<Nurse1 />} />
                 <Route path="/nurse2" element={<Nurse2 />} />
+                <Route path="/finance" element={<Finance1 />} />
+                <Route path="/finance2" element={<Finance2 />} />
               </Routes>
             </div>
           </Content>

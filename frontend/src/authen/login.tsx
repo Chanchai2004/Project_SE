@@ -38,12 +38,17 @@ const Login: React.FC = () => {
         messageApi.success("Sign-in successful");
 
         // กำหนดเส้นทางตามบทบาทของผู้ใช้
-        const validPositions = ["Doctor", "Nurse"];
-        let redirectPath = "/";
-        if (validPositions.includes(response.position)) {
-          redirectPath = `/${response.position.toLowerCase()}`;
+        const validPositions = ["Doctor", "Nurse", "Finance"];
+        let redirectPath = "/login"; // เส้นทางเริ่มต้นหากตำแหน่งไม่ถูกต้อง
+
+        if (response.position === "Doctor") {
+          redirectPath = "/doctor"; // เส้นทางสำหรับ Doctor
+        } else if (response.position === "Nurse") {
+          redirectPath = "/nurse"; // เส้นทางสำหรับ Nurse
+        } else if (response.position === "Finance Staff") {
+          redirectPath = "/finance"; // เส้นทางสำหรับ Finance
         } else {
-          redirectPath = "/"; // เส้นทางหน้าแรกสำหรับบทบาทอื่น
+          redirectPath = "/login";
         }
 
         // ตั้งค่า delay 1 วินาทีแล้วค่อย navigate ไปตามบทบาทของผู้ใช้
