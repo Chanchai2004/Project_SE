@@ -17,4 +17,5 @@ export interface IEmployee {
   ProfessionalLicense?: string; // เพิ่มฟิลด์ Professional License
   CongenitalDisease?: string; // เพิ่มฟิลด์ Congenital Disease
   Graduate?: string; // เพิ่มฟิลด์ Graduate
+  Profile?: string; // เพิ่มฟิลด์ Profile
 }

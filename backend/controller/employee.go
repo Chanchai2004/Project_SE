@@ -10,10 +10,12 @@ import (
 )
 
 // CreateEmployee handles creating a new employee
+// CreateEmployee handles creating a new employee
 func CreateEmployee(c *gin.Context) {
 	var employee entity.Employee
 	var input struct {
 		entity.Employee
+		Profile  string `json:"profile"` // เพิ่มฟิลด์ Profile
 		Diseases []uint `json:"diseases"` // รับ Disease ID หลายรายการ
 	}
 
@@ -84,8 +86,25 @@ func CreateEmployee(c *gin.Context) {
 	}
 	employee.Password = hashedPassword
 
+	// กำหนดค่าให้กับฟิลด์อื่น ๆ ของ employee
+	employee.FirstName = input.FirstName
+	employee.LastName = input.LastName
+	employee.Age = input.Age
+	employee.DateOfBirth = input.DateOfBirth
+	employee.Email = input.Email
+	employee.Phone = input.Phone
+	employee.Address = input.Address
+	employee.Username = input.Username
+	employee.ProfessionalLicense = input.ProfessionalLicense
+	employee.Graduate = input.Graduate
+	employee.GenderID = input.GenderID
+	employee.PositionID = input.PositionID
+	employee.DepartmentID = input.DepartmentID
+	employee.StatusID = input.StatusID
+	employee.SpecialistID = input.SpecialistID
+	employee.Profile = input.Profile
+
 	// บันทึก Employee ลงฐานข้อมูล
-	employee = input.Employee
 	if err := db.Create(&employee).Error; err != nil {
 		fmt.Println("Error creating employee:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -115,12 +134,15 @@ func CreateEmployee(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("Employee created successfully with diseases:", employee)
+	// ส่งข้อมูลกลับมาพร้อม status 201
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Created success",
-		"data":    employee,
+		"message": "Created success", // ส่งข้อความบ่งบอกว่าการสร้างสำเร็จ
+		"data":    employee, // ส่งข้อมูลพนักงานที่ถูกสร้าง
 	})
 }
+
+
+
 
 
 // GET /employee/:id

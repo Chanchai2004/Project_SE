@@ -35,6 +35,22 @@ async function createEmployee(employee: IEmployee) {
   return res;
 }
 
+async function getEmployeeById(id: string): Promise<IEmployee | false> {
+  const requestOptions = {
+    method: "GET",
+    headers: getAuthHeaders(),
+  };
+
+  const response = await fetch(`${apiUrl}/employee/${id}`, requestOptions);
+  if (response.status === 200) {
+    const data: IEmployee = await response.json();
+    return data;
+  } else {
+    console.error(`Failed to fetch employee with ID: ${id}`);
+    return false;
+  }
+}
+
 // ฟังก์ชันสำหรับดึงข้อมูล Employee ทั้งหมด
 async function listEmployees() {
   const requestOptions = {
@@ -214,4 +230,5 @@ export {
   listStatuses,
   listSpecialists,
   authenticateUser,
+  getEmployeeById,
 };

@@ -38,7 +38,7 @@ const Login: React.FC = () => {
         messageApi.success("Sign-in successful");
 
         // กำหนดเส้นทางตามบทบาทของผู้ใช้
-        const validPositions = ["Doctor", "Nurse", "Finance"];
+        const validPositions = ["Doctor", "Nurse", "Finance" , "Nurse counter", "Admin"];
         let redirectPath = "/login"; // เส้นทางเริ่มต้นหากตำแหน่งไม่ถูกต้อง
 
         if (response.position === "Doctor") {
@@ -47,6 +47,10 @@ const Login: React.FC = () => {
           redirectPath = "/nurse"; // เส้นทางสำหรับ Nurse
         } else if (response.position === "Finance Staff") {
           redirectPath = "/finance"; // เส้นทางสำหรับ Finance
+        } else if (response.position === "Nurse counter") {
+          redirectPath = "/counter"; // เส้นทางสำหรับ Finance
+        } else if (response.position === "Admin") {
+          redirectPath = "/admin"; // เส้นทางสำหรับ Finance
         } else {
           redirectPath = "/login";
         }

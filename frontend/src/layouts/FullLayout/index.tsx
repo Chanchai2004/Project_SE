@@ -9,10 +9,16 @@ import Nurse1 from "../../pages/nurse/Nurse1";
 import Nurse2 from "../../pages/nurse/Nurse2";
 import Finance1 from "../../pages/finance/Finance1";
 import Finance2 from "../../pages/finance/Finance2";
+import Counter1 from "../../pages/counter/Counter1";
+import Counter2 from "../../pages/counter/Counter2";
+import Admin1 from "../../pages/admin/Admin1";
+import Admin2 from "../../pages/admin/Admin2";
 
 import DoctorSidebar from "../../components/Sider/DoctorSidebar";
 import NurseSidebar from "../../components/Sider/NurseSidebar";
 import FinanceSidebar from "../../components/Sider/FinanceSidebar";
+import CounterSidebar from "../../components/Sider/CounterSidebar";
+import AdminSidebar from "../../components/Sider/AdminSidebar";
 
 const { Content } = Layout;
 
@@ -27,7 +33,11 @@ const FullLayout: React.FC = () => {
       return <NurseSidebar />;
     } else if (position === "Finance Staff") {
       return <FinanceSidebar />;
-    }else {
+    } else if (position === "Nurse counter") {
+      return <CounterSidebar />;
+    } else if (position === "Admin") {
+      return <AdminSidebar />;
+    } else {
       return null; // กรณีที่ไม่พบตำแหน่ง
     }
   };
@@ -64,6 +74,10 @@ const FullLayout: React.FC = () => {
                 <Route path="/nurse2" element={<Nurse2 />} />
                 <Route path="/finance" element={<Finance1 />} />
                 <Route path="/finance2" element={<Finance2 />} />
+                <Route path="/counter" element={<Counter1 />} />
+                <Route path="/counter2" element={<Counter2 />} />
+                <Route path="/admin" element={<Admin1 />} />
+                <Route path="/admin2" element={<Admin2 />} />
               </Routes>
             </div>
           </Content>
