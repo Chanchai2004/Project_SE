@@ -12,6 +12,9 @@ import (
 // CreateEmployee handles creating a new employee
 // CreateEmployee handles creating a new employee
 func CreateEmployee(c *gin.Context) {
+
+	fmt.Println("Created Employee")
+
 	var employee entity.Employee
 	var input struct {
 		entity.Employee

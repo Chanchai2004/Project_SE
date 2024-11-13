@@ -13,27 +13,26 @@ function getAuthHeaders() {
 
 // ฟังก์ชันสำหรับสร้าง Employee
 async function createEmployee(employee: IEmployee) {
+  console.log("//////////////////////////////");
   const requestOptions = {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(employee),
   };
 
-  let res = await fetch(`${apiUrl}/employees`, requestOptions)
-    .then((response) => {
-      if (response.status === 201) {
-        return response.json();
-      } else {
-        return false;
-      }
+  const response = await fetch(`${apiUrl}/employees`, requestOptions)
+    .then(async (response) => {
+      const data = await response.json(); // อ่าน JSON ของ response
+      return { status: response.status, data }; // รวม status และ data เข้าด้วยกัน
     })
     .catch((error) => {
       console.error("Error creating employee:", error);
-      return false;
+      return { status: null, data: null }; // กรณีเกิดข้อผิดพลาด
     });
 
-  return res;
+  return response; // คืนค่า object {status, data}
 }
+
 
 async function getEmployeeById(id: string): Promise<IEmployee | false> {
   const requestOptions = {

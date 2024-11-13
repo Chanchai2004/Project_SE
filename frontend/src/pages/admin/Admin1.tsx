@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import sendEmail from "../../components/SendEmail/email_register";
 import {
   Space,
   Button,
@@ -17,6 +18,7 @@ import {
 import { PlusOutlined } from "@ant-design/icons";
 import ImgCrop from "antd-img-crop";
 import { IEmployee } from "../../interfaces/IEmployee";
+import { getEmployeeById } from "../../services/https";
 import {
   createEmployee,
   listGenders,
@@ -45,6 +47,10 @@ const Admin1: React.FC = () => {
   const [departments, setDepartments] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [specialists, setSpecialists] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const [firstName2, setFirstName] = useState("2");
+  const [lastName2, setLastName] = useState("1");
 
   const fetchData = async () => {
     const genderRes = await listGenders();
@@ -61,10 +67,25 @@ const Admin1: React.FC = () => {
 
     const specialistRes = await listSpecialists();
     if (specialistRes) setSpecialists(specialistRes);
+
   };
+
+  const fetchEmployeeData = async () => {
+    const employeeId = localStorage.getItem("id");
+    if (employeeId) {
+      const employee = await getEmployeeById(employeeId);
+      if (employee) {
+
+        setFirstName(employee.first_name);
+        setLastName(employee.last_name);
+
+      }
+    }
+  }
 
   useEffect(() => {
     fetchData();
+    fetchEmployeeData();
   }, []);
 
   const onChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
@@ -85,66 +106,78 @@ const Admin1: React.FC = () => {
   };
 
   const onFinish = async (values: any) => {
+    fetchEmployeeData();
     setIsSubmitting(true);
-  
+
     // จัดรูปแบบข้อมูลก่อนส่งไปยัง API
     const formattedValues = {
-      first_name: values.FirstName,         // first_name
-      last_name: values.LastName,           // last_name
-      age: Number(values.Age),              // age
-      // แก้ไขวันที่ให้เป็นรูปแบบ ISO 8601
-      date_of_birth: values.DateOfBirth.format("YYYY-MM-DDTHH:mm:ssZ"),  // date_of_birth
-      email: values.Email,                  // email
-      phone: values.Phone,                  // phone
-      address: values.Address,              // address
-      username: values.Username,            // username
-      professional_license: values.ProfessionalLicense,  // professional_license
-      graduate: values.Graduate,            // graduate
-      password: values.Password,            // password
-      gender_id: values.GenderID,           // gender_id
-      position_id: values.PositionID,       // position_id
-      department_id: values.DepartmentID,   // department_id
-      status_id: values.StatusID,           // status_id
-      specialist_id: values.SpecialistID,   // specialist_id
+      first_name: values.FirstName, // first_name
+      last_name: values.LastName, // last_name
+      age: Number(values.Age), // age
+      date_of_birth: values.DateOfBirth.format("YYYY-MM-DDTHH:mm:ssZ"), // date_of_birth
+      email: values.Email, // email
+      phone: values.Phone, // phone
+      address: values.Address, // address
+      username: values.Username, // username
+      professional_license: values.ProfessionalLicense, // professional_license
+      graduate: values.Graduate, // graduate
+      password: values.Password, // password
+      gender_id: values.GenderID, // gender_id
+      position_id: values.PositionID, // position_id
+      department_id: values.DepartmentID, // department_id
+      status_id: values.StatusID, // status_id
+      specialist_id: values.SpecialistID, // specialist_id
       profile: fileList[0]?.thumbUrl || "", // profile (base64 image)
     };
-  
-    // ตรวจสอบข้อมูลที่กำลังจะส่งไป API
+
     console.log("Formatted data being sent to API:", formattedValues);
-  
+
     try {
-      const result = await createEmployee(formattedValues);
-  
-      // พิมพ์ผลลัพธ์จาก backend ใน console เพื่อดูว่ามีอะไรส่งกลับมาบ้าง
-      console.log("Response from API:", result); // แสดงผลลัพธ์ที่ได้รับจาก API
-  
-      // ตรวจสอบผลลัพธ์จาก API
+      const result = await createEmployee(formattedValues); // ส่งข้อมูลไปยัง API
+
+      // พิมพ์ผลลัพธ์ที่ได้รับจาก API
+      console.log("Response from API:", result);
+
+      // ตรวจสอบ status จาก API
       if (result.status === 201) {
-        // ตรวจสอบข้อความที่ส่งจาก backend
-        if (result.data && result.data.message === "Created success") {
-          message.success("Employee created successfully!");
-          setTimeout(() => {
-            navigate("/admin");
-          }, 2000);
-        } else {
-          message.error("Failed to create employee.");
-        }
+        sendEmail({
+          email: values.Email,
+          username: values.Username,
+          password: values.Password,
+          subject: "สำคัญ: ข้อมูลบัญชีผู้ใช้งานระบบของคุณ",
+          lastname: values.LastName,
+          firstname: values.FirstName,
+          lastname2: lastName2,
+          firstname2: firstName2,
+        });
+        messageApi.open({
+          type: "success",
+          content: "บันทึกข้อมูลสำเร็จ",
+        });
+        setTimeout(() => {
+          navigate("/admin");
+          form.resetFields();
+          setFileList([]);
+        }, 2000);
       } else {
-        // กรณีที่ไม่เป็นสถานะ 201
-        message.error("Failed to create employee.");
+        messageApi.open({
+
+          type: "error",
+          content: "เกิดข้อผิดพลาด! กรุณาตรวจสอบ Username และ Email อีกครั้ง",
+        });
       }
-      setIsSubmitting(false);
-    } catch (error) {
-      console.error("Error occurred:", error);
-      message.error("An unexpected error occurred.");
+
+    } finally {
       setIsSubmitting(false);
     }
   };
-  
-  
+
+
+
 
   return (
     <div>
+      {contextHolder}
       <Card>
         <h2>ลงทะเบียนพนักงาน</h2>
         <Divider />
@@ -171,7 +204,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="ชื่อจริง"
                 name="FirstName"
@@ -181,7 +214,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="นามสกุล"
                 name="LastName"
@@ -191,7 +224,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="อายุ"
                 name="Age"
@@ -201,7 +234,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="วันเกิด"
                 name="DateOfBirth"
@@ -211,7 +244,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="อีเมล"
                 name="Email"
@@ -221,7 +254,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="เบอร์โทรศัพท์"
                 name="Phone"
@@ -231,15 +264,6 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
-              <Form.Item
-                label="ที่อยู่"
-                name="Address"
-                rules={[{ required: true, message: "กรุณากรอกที่อยู่!" }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
 
             <Col span={12}>
               <Form.Item
@@ -293,7 +317,7 @@ const Admin1: React.FC = () => {
                 <Select placeholder="กรุณาเลือกเพศ">
                   {genders.map((gender) => (
                     <Option key={gender.ID} value={gender.ID}>
-                      {gender.Name}
+                      {gender.gender_name}
                     </Option>
                   ))}
                 </Select>
@@ -309,14 +333,14 @@ const Admin1: React.FC = () => {
                 <Select placeholder="เลือกตำแหน่ง">
                   {positions.map((position) => (
                     <Option key={position.ID} value={position.ID}>
-                      {position.Name}
+                      {position.position_name}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="แผนก"
                 name="DepartmentID"
@@ -325,14 +349,14 @@ const Admin1: React.FC = () => {
                 <Select placeholder="เลือกแผนก">
                   {departments.map((department) => (
                     <Option key={department.ID} value={department.ID}>
-                      {department.Name}
+                      {department.department_name}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="สถานะ"
                 name="StatusID"
@@ -341,14 +365,14 @@ const Admin1: React.FC = () => {
                 <Select placeholder="เลือกสถานะ">
                   {statuses.map((status) => (
                     <Option key={status.ID} value={status.ID}>
-                      {status.Name}
+                      {status.status_name}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 label="ผู้เชี่ยวชาญ"
                 name="SpecialistID"
@@ -357,12 +381,23 @@ const Admin1: React.FC = () => {
                 <Select placeholder="เลือกผู้เชี่ยวชาญ">
                   {specialists.map((specialist) => (
                     <Option key={specialist.ID} value={specialist.ID}>
-                      {specialist.Name}
+                      {specialist.specialist_name}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
+
+            <Col span={24}>
+              <Form.Item
+                label="ที่อยู่"
+                name="Address"
+                rules={[{ required: true, message: "กรุณากรอกที่อยู่!" }]}
+              >
+                <Input.TextArea rows={4} placeholder="กรอกที่อยู่ของคุณ" />
+              </Form.Item>
+            </Col>
+
           </Row>
 
           <Row justify="center" style={{ marginTop: 16 }}>

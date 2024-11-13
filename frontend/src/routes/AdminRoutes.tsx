@@ -13,6 +13,10 @@ const AdminRoutes = (): RouteObject[] => {
       element: <FullLayout />,
       children: [
         {
+          index: true, // Default route
+          element: <Admin1 />, // แสดง Admin1 เมื่อเข้า "/"
+        },
+        {
           path: "/admin",
           element: <Admin1 />,
         },

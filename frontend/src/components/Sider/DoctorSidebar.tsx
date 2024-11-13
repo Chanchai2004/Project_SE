@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AppstoreOutlined,
@@ -11,6 +11,7 @@ import {
 } from "@ant-design/icons";
 import { IEmployee } from "../../interfaces/IEmployee";
 import { getEmployeeById } from "../../services/https";
+import demo from "../../assets/demo.png";
 
 const { Sider } = Layout;
 
@@ -18,7 +19,7 @@ const DoctorSidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [profile, setProfile] = useState("");
+  const [profile, setProfile] = useState(demo); // กำหนด default image เป็น demo
   const navigate = useNavigate();
 
   // ฟังก์ชันสำหรับดึงข้อมูลพนักงาน
@@ -27,9 +28,9 @@ const DoctorSidebar: React.FC = () => {
     if (employeeId) {
       const employee: IEmployee | false = await getEmployeeById(employeeId);
       if (employee) {
-        setFirstName(employee.FirstName || "");
-        setLastName(employee.LastName || "");
-        setProfile(employee.Profile || "");
+        setFirstName(employee.first_name || "");
+        setLastName(employee.last_name || "");
+        setProfile(employee.profile || demo); // ใช้ demo เป็นค่า default หากไม่มีรูป
       }
     }
   };
@@ -54,24 +55,23 @@ const DoctorSidebar: React.FC = () => {
       style={{ backgroundColor: "#5752a7" }} // สีพื้นหลังของ Sider
     >
       <div style={{ textAlign: "center", padding: "16px", color: "#fff" }}>
-        {profile && (
-          <img
-            src={profile}
-            alt="Profile"
-            style={{
-              width: collapsed ? "40px" : "80px",
-              height: collapsed ? "40px" : "80px",
-              borderRadius: "50%",
-              marginBottom: "8px",
-            }}
-          />
-        )}
+      <img
+  src={profile} // ใช้รูปภาพโปรไฟล์
+  alt="Profile"
+  style={{
+    width: collapsed ? "40px" : "80px",
+    height: collapsed ? "40px" : "80px",
+    borderRadius: "50%",
+    border: "2px solid #fff",
+    marginBottom: "8px",
+    transition: "all 0.3s ease-in-out", // เพิ่ม transition เพื่อทำให้ smooth
+  }}
+/>
         {!collapsed && (
           <div>
             <div style={{ fontSize: "18px" }}>
               {firstName} {lastName}
             </div>
-            <div style={{ fontSize: "14px", color: "#ccc" }}>Doctor</div>
           </div>
         )}
       </div>
@@ -83,19 +83,23 @@ const DoctorSidebar: React.FC = () => {
         style={{ backgroundColor: "transparent" }} // ทำให้ Menu ใช้พื้นหลังเดียวกับ Sider
       >
         <Menu.Item
-          key="dashboard"
+          key="doctor1"
           icon={<AppstoreOutlined />}
           style={{ color: "#ffffff" }}
         >
-          <Link to="/doctor" style={{ color: "#ffffff" }}>doctor1</Link>
+          <Link to="/doctor" style={{ color: "#ffffff" }}>
+            Docter1
+          </Link>
         </Menu.Item>
 
         <Menu.Item
-          key="patientRecords"
+          key="doctor2"
           icon={<FileTextOutlined />}
           style={{ color: "#ffffff" }}
         >
-          <Link to="/doctor2" style={{ color: "#ffffff" }}>doctor2</Link>
+          <Link to="/doctor2" style={{ color: "#ffffff" }}>
+            Doctor2
+          </Link>
         </Menu.Item>
 
         <Menu.Item
@@ -103,7 +107,9 @@ const DoctorSidebar: React.FC = () => {
           icon={<PieChartOutlined />}
           style={{ color: "#ffffff" }}
         >
-          <Link to="/option1" style={{ color: "#ffffff" }}>Option 1</Link>
+          <Link to="/option1" style={{ color: "#ffffff" }}>
+            Option 1
+          </Link>
         </Menu.Item>
 
         <Menu.Item
@@ -111,7 +117,9 @@ const DoctorSidebar: React.FC = () => {
           icon={<DesktopOutlined />}
           style={{ color: "#ffffff" }}
         >
-          <Link to="/option2" style={{ color: "#ffffff" }}>Option 2</Link>
+          <Link to="/option2" style={{ color: "#ffffff" }}>
+            Option 2
+          </Link>
         </Menu.Item>
 
         <Menu.SubMenu
@@ -120,8 +128,12 @@ const DoctorSidebar: React.FC = () => {
           title="Navigation One"
           style={{ color: "#ffffff" }}
         >
-          <Menu.Item key="sub1_option5" style={{ color: "#ffffff" }}>Option 5</Menu.Item>
-          <Menu.Item key="sub1_option6" style={{ color: "#ffffff" }}>Option 6</Menu.Item>
+          <Menu.Item key="sub1_option5" style={{ color: "#ffffff" }}>
+            Option 5
+          </Menu.Item>
+          <Menu.Item key="sub1_option6" style={{ color: "#ffffff" }}>
+            Option 6
+          </Menu.Item>
         </Menu.SubMenu>
 
         <Menu.SubMenu
@@ -130,8 +142,12 @@ const DoctorSidebar: React.FC = () => {
           title="Navigation Two"
           style={{ color: "#ffffff" }}
         >
-          <Menu.Item key="sub2_option9" style={{ color: "#ffffff" }}>Option 9</Menu.Item>
-          <Menu.Item key="sub2_option10" style={{ color: "#ffffff" }}>Option 10</Menu.Item>
+          <Menu.Item key="sub2_option9" style={{ color: "#ffffff" }}>
+            Option 9
+          </Menu.Item>
+          <Menu.Item key="sub2_option10" style={{ color: "#ffffff" }}>
+            Option 10
+          </Menu.Item>
         </Menu.SubMenu>
 
         <Menu.Item
@@ -140,7 +156,7 @@ const DoctorSidebar: React.FC = () => {
           onClick={handleLogout}
           style={{
             color: "#d9534f", // สีแดงสำหรับ Logout
-            marginTop: "55vh", // ให้ปุ่ม Logout อยู่ด้านล่าง
+            
           }}
         >
           Logout

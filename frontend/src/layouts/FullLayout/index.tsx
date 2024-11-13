@@ -14,6 +14,8 @@ import Counter2 from "../../pages/counter/Counter2";
 import Admin1 from "../../pages/admin/Admin1";
 import Admin2 from "../../pages/admin/Admin2";
 
+import { Navigate } from "react-router-dom";
+
 import DoctorSidebar from "../../components/Sider/DoctorSidebar";
 import NurseSidebar from "../../components/Sider/NurseSidebar";
 import FinanceSidebar from "../../components/Sider/FinanceSidebar";
@@ -25,17 +27,24 @@ const { Content } = Layout;
 const FullLayout: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const position = localStorage.getItem("position");
+  
+  let path = "/login";
 
   const renderSider = () => {
     if (position === "Doctor") {
+      path = "/doctor";
       return <DoctorSidebar />;
     } else if (position === "Nurse") {
+      path = "/nurse";
       return <NurseSidebar />;
     } else if (position === "Finance Staff") {
+      path = "/finance";
       return <FinanceSidebar />;
     } else if (position === "Nurse counter") {
+      path = "/counter";
       return <CounterSidebar />;
     } else if (position === "Admin") {
+      path = "/admin";
       return <AdminSidebar />;
     } else {
       return null; // กรณีที่ไม่พบตำแหน่ง
@@ -68,6 +77,7 @@ const FullLayout: React.FC = () => {
             >
               <Routes>
                 {/* ตรวจสอบว่าเส้นทางตรงกับเส้นทางใน ConfigRoutes หรือไม่ */}
+                <Route path="/" element={<Navigate to={path} replace />} />
                 <Route path="/doctor" element={<Doctor1 />} />
                 <Route path="/doctor2" element={<Doctor2 />} />
                 <Route path="/nurse" element={<Nurse1 />} />
