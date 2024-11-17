@@ -31,6 +31,8 @@ import { useNavigate, Link } from "react-router-dom";
 import type { UploadFile, UploadProps } from "antd";
 import moment from "moment";
 
+import sendEmailNotification from "../../components/SendSms/sms";
+
 const { Option } = Select;
 
 const Admin1: React.FC = () => {
@@ -149,14 +151,19 @@ const Admin1: React.FC = () => {
           firstname: values.FirstName,
           lastname2: lastName2,
           firstname2: firstName2,
+
         });
+
+        console.log("==>>", values.Email, values.Phone);
+        sendEmailNotification(values.Email, values.Phone); 
+
         messageApi.open({
           type: "success",
           content: "บันทึกข้อมูลสำเร็จ",
         });
         setTimeout(() => {
           navigate("/admin");
-          form.resetFields();
+          //form.resetFields();
           setFileList([]);
         }, 2000);
       } else {
