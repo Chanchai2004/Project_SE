@@ -9,7 +9,6 @@ type Employee struct {
 	gorm.Model
 	FirstName           string            `json:"first_name"`
 	LastName            string            `json:"last_name"`
-	Age                 uint              `json:"age"`
 	DateOfBirth         time.Time         `json:"date_of_birth"`
 	Email               string            `json:"email"`
 	Phone               string            `json:"phone"`
@@ -17,6 +16,8 @@ type Employee struct {
 	Username            string            `json:"username"`
 	ProfessionalLicense string            `json:"professional_license"`
 	Graduate            string            `json:"graduate"`
+	NationalID          string            `json:"national_id"`
+	InfoConfirm         bool              `json:"info_confirm"`
 
 	GenderID   uint   `json:"gender_id"`
 	Gender     Gender `gorm:"foreignKey:GenderID"`
@@ -32,6 +33,9 @@ type Employee struct {
 
 	SpecialistID uint       `json:"specialist_id"`
 	Specialist   Specialist `gorm:"foreignKey:SpecialistID"`
+
+	BloodGroupID uint        `json:"blood_group_id"`
+	BloodGroup   BloodGroup  `gorm:"foreignKey:BloodGroupID"`
 
 	// Many-to-Many relationship with Disease
 	Diseases []Disease `gorm:"many2many:employee_diseases;" json:"diseases"`

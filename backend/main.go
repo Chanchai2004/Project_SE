@@ -78,6 +78,14 @@ func main() {
 		protected.POST("/diseases", controller.CreateDisease)
 		protected.PATCH("/disease/:id", controller.UpdateDisease)
 		protected.DELETE("/disease/:id", controller.DeleteDisease)
+
+		// BloodGroup Routes
+		protected.GET("/bloodgroups", controller.GetBloodGroups)
+		protected.GET("/bloodgroup/:id", controller.GetBloodGroupByID)
+		protected.POST("/bloodgroups", controller.CreateBloodGroup)
+		protected.PATCH("/bloodgroup/:id", controller.UpdateBloodGroup)
+		protected.DELETE("/bloodgroup/:id", controller.DeleteBloodGroup)
+
 	}
 
 	// เส้นทางสำหรับตรวจสอบสถานะของ API

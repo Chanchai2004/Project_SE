@@ -36,13 +36,19 @@ function ConfigRoutes() {
       
       routes = FinanceRoutes(); // NurseRoutes ต้องคืนค่า RouteObject[]
  
+    } else {
+      console.log("this in routes login");
+      routes = [LoginRoutes()]; // LoginRoutes ต้องคืนค่า RouteObject[]
+  
     }
 
+
   } else {
-    
+    console.log("this is else routes login");
     routes = [LoginRoutes()]; // LoginRoutes ต้องคืนค่า RouteObject[]
 
   }
+  
 
   return useRoutes(routes);
 }

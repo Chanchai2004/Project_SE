@@ -220,6 +220,31 @@ async function authenticateUser(username: string, password: string) {
   return res;
 }
 
+// ฟังก์ชันสำหรับดึงข้อมูล Blood Groups ทั้งหมด
+async function listBloodGroups() {
+  const requestOptions = {
+    method: "GET",
+    headers: getAuthHeaders(), // ใช้ฟังก์ชัน getAuthHeaders() เพื่อดึง Authorization Headers
+  };
+
+  let res = await fetch(`${apiUrl}/bloodgroups`, requestOptions)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.json(); // แปลงผลลัพธ์เป็น JSON หากสถานะเป็น 200 OK
+      } else {
+        console.error("Failed to fetch blood groups. Status:", response.status);
+        return false;
+      }
+    })
+    .catch((error) => {
+      console.error("Error listing blood groups:", error);
+      return false;
+    });
+
+  return res; // คืนค่าผลลัพธ์ที่ได้จาก API
+}
+
+
 export {
   createEmployee,
   listEmployees,
@@ -230,4 +255,5 @@ export {
   listSpecialists,
   authenticateUser,
   getEmployeeById,
+  listBloodGroups,
 };

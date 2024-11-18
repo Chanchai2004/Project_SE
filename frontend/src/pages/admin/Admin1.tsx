@@ -26,6 +26,7 @@ import {
   listDepartments,
   listStatuses,
   listSpecialists,
+  listBloodGroups,
 } from "../../services/https";
 import { useNavigate, Link } from "react-router-dom";
 import type { UploadFile, UploadProps } from "antd";
@@ -49,6 +50,7 @@ const Admin1: React.FC = () => {
   const [departments, setDepartments] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [specialists, setSpecialists] = useState([]);
+  const [bloodGroups, setBloodGroups] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   const [firstName2, setFirstName] = useState("2");
@@ -69,6 +71,9 @@ const Admin1: React.FC = () => {
 
     const specialistRes = await listSpecialists();
     if (specialistRes) setSpecialists(specialistRes);
+
+    const bloodGroupRes = await listBloodGroups(); // เรียกใช้ API listBloodGroups
+    if (bloodGroupRes) setBloodGroups(bloodGroupRes); // เก็บข้อมูลลงใน state bloodGroups
 
   };
 
@@ -115,7 +120,6 @@ const Admin1: React.FC = () => {
     const formattedValues = {
       first_name: values.FirstName, // first_name
       last_name: values.LastName, // last_name
-      age: Number(values.Age), // age
       date_of_birth: values.DateOfBirth.format("YYYY-MM-DDTHH:mm:ssZ"), // date_of_birth
       email: values.Email, // email
       phone: values.Phone, // phone
@@ -130,7 +134,12 @@ const Admin1: React.FC = () => {
       status_id: values.StatusID, // status_id
       specialist_id: values.SpecialistID, // specialist_id
       profile: fileList[0]?.thumbUrl || "", // profile (base64 image)
+      blood_group_id: values.BloodGroupID, // blood_group_id
+      info_confirm: false, // ตั้งเป็น false ตลอดเวลา
+      national_id: values.NationalID, // national_id
+      diseases: values.Diseases || [], // diseases (array of IDs)
     };
+
 
     console.log("Formatted data being sent to API:", formattedValues);
 
@@ -155,7 +164,7 @@ const Admin1: React.FC = () => {
         });
 
         console.log("==>>", values.Email, values.Phone);
-        sendEmailNotification(values.Email, values.Phone); 
+        sendEmailNotification(values.Email, values.Phone);
 
         messageApi.open({
           type: "success",
@@ -211,7 +220,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item
                 label="ชื่อจริง"
                 name="FirstName"
@@ -221,7 +230,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item
                 label="นามสกุล"
                 name="LastName"
@@ -231,17 +240,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
-              <Form.Item
-                label="อายุ"
-                name="Age"
-                rules={[{ required: true, message: "กรุณากรอกอายุ!" }]}
-              >
-                <Input type="number" />
-              </Form.Item>
-            </Col>
-
-            <Col span={8}>
+            <Col span={4}>
               <Form.Item
                 label="วันเกิด"
                 name="DateOfBirth"
@@ -251,23 +250,81 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
+            <Col span={4}>
               <Form.Item
-                label="อีเมล"
-                name="Email"
-                rules={[{ required: true, message: "กรุณากรอกอีเมล!" }]}
+                label="เพศ"
+                name="GenderID"
+                rules={[{ required: true, message: "กรุณาเลือกเพศ!" }]}
               >
-                <Input type="email" />
+                <Select placeholder="กรุณาเลือกเพศ">
+                  {genders.map((gender) => (
+                    <Option key={gender.ID} value={gender.ID}>
+                      {gender.gender_name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
 
             <Col span={8}>
               <Form.Item
+                label="อีเมล"
+                name="Email"
+                rules={[
+                  { required: true, message: "กรุณากรอกอีเมล!" },
+                  { type: "email", message: "กรุณากรอกอีเมลที่ถูกต้อง!" },
+                ]}
+              >
+                <Input placeholder="กรุณากรอกอีเมล" />
+              </Form.Item>
+            </Col>
+
+
+            <Col span={8}>
+              <Form.Item
                 label="เบอร์โทรศัพท์"
                 name="Phone"
-                rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์!" }]}
+                rules={[
+                  { required: true, message: "กรุณากรอกเบอร์โทรศัพท์!" },
+                  {
+                    pattern: /^[0-9]{10}$/,
+                    message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลัก!",
+                  },
+                ]}
               >
-                <Input />
+                <Input placeholder="กรุณากรอกเบอร์โทรศัพท์" maxLength={10} />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label="กรุ๊ปเลือด"
+                name="BloodGroupID"
+                rules={[{ required: true, message: "กรุณาเลือกกรุ๊ปเลือด!" }]}
+              >
+                <Select placeholder="กรุณาเลือกกรุ๊ปเลือด">
+                  {bloodGroups.map((bloodGroup) => (
+                    <Option key={bloodGroup.ID} value={bloodGroup.ID}>
+                      {bloodGroup.blood_group}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label="หมายเลขบัตรประชาชน"
+                name="NationalID"
+                rules={[
+                  { required: true, message: "กรุณากรอกหมายเลขบัตรประชาชน!" },
+                  {
+                    pattern: /^[0-9]{13}$/,
+                    message: "หมายเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก!",
+                  },
+                ]}
+              >
+                <Input placeholder="กรุณากรอกหมายเลขบัตรประชาชน" maxLength={13} />
               </Form.Item>
             </Col>
 
@@ -295,15 +352,25 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
+            
+
+
             <Col span={12}>
               <Form.Item
                 label="ใบประกอบวิชาชีพ"
                 name="ProfessionalLicense"
-                rules={[{ required: true, message: "กรุณากรอกใบประกอบวิชาชีพ!" }]}
+                rules={[
+                  { required: true, message: "กรุณากรอกใบประกอบวิชาชีพ!" },
+                  {
+                    pattern: /^[A-Za-z0-9]{10}$/,
+                    message: "ใบประกอบวิชาชีพต้องมีความยาว 10 หลัก (ตัวอักษรหรือตัวเลข)!",
+                  },
+                ]}
               >
-                <Input />
+                <Input placeholder="กรุณากรอกใบประกอบวิชาชีพ" maxLength={10} />
               </Form.Item>
             </Col>
+
 
             <Col span={12}>
               <Form.Item
@@ -314,24 +381,11 @@ const Admin1: React.FC = () => {
                 <Input />
               </Form.Item>
             </Col>
+            
 
-            <Col span={12}>
-              <Form.Item
-                label="เพศ"
-                name="GenderID"
-                rules={[{ required: true, message: "กรุณาเลือกเพศ!" }]}
-              >
-                <Select placeholder="กรุณาเลือกเพศ">
-                  {genders.map((gender) => (
-                    <Option key={gender.ID} value={gender.ID}>
-                      {gender.gender_name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
 
-            <Col span={12}>
+
+            <Col span={6}>
               <Form.Item
                 label="ตำแหน่ง"
                 name="PositionID"
@@ -347,7 +401,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
+            <Col span={6}>
               <Form.Item
                 label="แผนก"
                 name="DepartmentID"
@@ -363,23 +417,9 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={8}>
-              <Form.Item
-                label="สถานะ"
-                name="StatusID"
-                rules={[{ required: true, message: "กรุณากรอกสถานะ!" }]}
-              >
-                <Select placeholder="เลือกสถานะ">
-                  {statuses.map((status) => (
-                    <Option key={status.ID} value={status.ID}>
-                      {status.status_name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
+            
 
-            <Col span={8}>
+            <Col span={6}>
               <Form.Item
                 label="ผู้เชี่ยวชาญ"
                 name="SpecialistID"
@@ -389,6 +429,22 @@ const Admin1: React.FC = () => {
                   {specialists.map((specialist) => (
                     <Option key={specialist.ID} value={specialist.ID}>
                       {specialist.specialist_name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item
+                label="สถานะ"
+                name="StatusID"
+                rules={[{ required: true, message: "กรุณากรอกสถานะ!" }]}
+              >
+                <Select placeholder="เลือกสถานะ">
+                  {statuses.map((status) => (
+                    <Option key={status.ID} value={status.ID}>
+                      {status.status_name}
                     </Option>
                   ))}
                 </Select>
