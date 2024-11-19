@@ -188,6 +188,30 @@ async function listSpecialists() {
   return res;
 }
 
+
+async function listDiseases() {
+  const requestOptions = {
+    method: "GET",
+    headers: getAuthHeaders(),
+  };
+
+  let res = await fetch(`${apiUrl}/diseases`, requestOptions)
+    .then((response) => {
+      if (response.status === 200) {
+        return response.json();
+      } else {
+        return false;
+      }
+    })
+    .catch((error) => {
+      console.error("Error listing diseases:", error);
+      return false;
+    });
+
+  return res;
+}
+
+
 // ฟังก์ชันสำหรับการเข้าสู่ระบบและรับ token
 async function authenticateUser(username: string, password: string) {
   const requestOptions = {
@@ -253,6 +277,7 @@ export {
   listDepartments,
   listStatuses,
   listSpecialists,
+  listDiseases,
   authenticateUser,
   getEmployeeById,
   listBloodGroups,

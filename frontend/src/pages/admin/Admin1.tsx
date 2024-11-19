@@ -27,6 +27,7 @@ import {
   listStatuses,
   listSpecialists,
   listBloodGroups,
+  listDiseases,
 } from "../../services/https";
 import { useNavigate, Link } from "react-router-dom";
 import type { UploadFile, UploadProps } from "antd";
@@ -51,6 +52,7 @@ const Admin1: React.FC = () => {
   const [statuses, setStatuses] = useState([]);
   const [specialists, setSpecialists] = useState([]);
   const [bloodGroups, setBloodGroups] = useState([]);
+  const [diseases, setDiseases] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   const [firstName2, setFirstName] = useState("2");
@@ -75,6 +77,8 @@ const Admin1: React.FC = () => {
     const bloodGroupRes = await listBloodGroups(); // เรียกใช้ API listBloodGroups
     if (bloodGroupRes) setBloodGroups(bloodGroupRes); // เก็บข้อมูลลงใน state bloodGroups
 
+    const diseaseRes = await listDiseases(); // เรียกใช้ API listDiseases
+    if (diseaseRes) setDiseases(diseaseRes);
   };
 
   const fetchEmployeeData = async () => {
@@ -220,6 +224,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
+
             <Col span={12}>
               <Form.Item
                 label="ชื่อจริง"
@@ -250,21 +255,24 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={4}>
+
+            <Col span={8}>
               <Form.Item
-                label="เพศ"
-                name="GenderID"
-                rules={[{ required: true, message: "กรุณาเลือกเพศ!" }]}
+                label="หมายเลขบัตรประชาชน"
+                name="NationalID"
+                rules={[
+                  { required: true, message: "กรุณากรอกหมายเลขบัตรประชาชน!" },
+                  {
+                    pattern: /^[0-9]{13}$/,
+                    message: "หมายเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก!",
+                  },
+                ]}
               >
-                <Select placeholder="กรุณาเลือกเพศ">
-                  {genders.map((gender) => (
-                    <Option key={gender.ID} value={gender.ID}>
-                      {gender.gender_name}
-                    </Option>
-                  ))}
-                </Select>
+                <Input placeholder="กรุณากรอกหมายเลขบัตรประชาชน" maxLength={13} />
               </Form.Item>
             </Col>
+
+
 
             <Col span={8}>
               <Form.Item
@@ -280,7 +288,7 @@ const Admin1: React.FC = () => {
             </Col>
 
 
-            <Col span={8}>
+            <Col span={4}>
               <Form.Item
                 label="เบอร์โทรศัพท์"
                 name="Phone"
@@ -296,7 +304,23 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={6}>
+              <Form.Item
+                label="เพศ"
+                name="GenderID"
+                rules={[{ required: true, message: "กรุณาเลือกเพศ!" }]}
+              >
+                <Select placeholder="กรุณาเลือกเพศ">
+                  {genders.map((gender) => (
+                    <Option key={gender.ID} value={gender.ID}>
+                      {gender.gender_name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
               <Form.Item
                 label="กรุ๊ปเลือด"
                 name="BloodGroupID"
@@ -314,19 +338,29 @@ const Admin1: React.FC = () => {
 
             <Col span={12}>
               <Form.Item
-                label="หมายเลขบัตรประชาชน"
-                name="NationalID"
-                rules={[
-                  { required: true, message: "กรุณากรอกหมายเลขบัตรประชาชน!" },
-                  {
-                    pattern: /^[0-9]{13}$/,
-                    message: "หมายเลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก!",
-                  },
-                ]}
+                label="โรคประจำตัว"
+                name="Diseases"
+                rules={[{ required: false, message: "กรุณาเลือกโรคประจำตัว!" }]}
               >
-                <Input placeholder="กรุณากรอกหมายเลขบัตรประชาชน" maxLength={13} />
+                <Select
+                  mode="multiple" // อนุญาตให้เลือกหลายค่า
+                  placeholder="เลือกโรคประจำตัว"
+                  allowClear
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option?.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {diseases.map((disease) => (
+                    <Option key={disease.ID} value={disease.ID}>
+                      {disease.disease_name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
+
+
 
 
             <Col span={12}>
@@ -352,7 +386,7 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            
+
 
 
             <Col span={12}>
@@ -381,7 +415,7 @@ const Admin1: React.FC = () => {
                 <Input />
               </Form.Item>
             </Col>
-            
+
 
 
 
@@ -391,7 +425,15 @@ const Admin1: React.FC = () => {
                 name="PositionID"
                 rules={[{ required: true, message: "กรุณาเลือกตำแหน่ง!" }]}
               >
-                <Select placeholder="เลือกตำแหน่ง">
+                <Select
+                  placeholder="เลือกตำแหน่ง"
+                  showSearch
+                  allowClear
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option?.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
                   {positions.map((position) => (
                     <Option key={position.ID} value={position.ID}>
                       {position.position_name}
@@ -401,13 +443,22 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
+
             <Col span={6}>
               <Form.Item
                 label="แผนก"
                 name="DepartmentID"
-                rules={[{ required: true, message: "กรุณากรอกแผนก!" }]}
+                rules={[{ required: true, message: "กรุณาเลือกแผนก!" }]}
               >
-                <Select placeholder="เลือกแผนก">
+                <Select
+                  placeholder="เลือกแผนก"
+                  showSearch
+                  allowClear
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option?.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
                   {departments.map((department) => (
                     <Option key={department.ID} value={department.ID}>
                       {department.department_name}
@@ -417,7 +468,8 @@ const Admin1: React.FC = () => {
               </Form.Item>
             </Col>
 
-            
+
+
 
             <Col span={6}>
               <Form.Item
@@ -460,6 +512,8 @@ const Admin1: React.FC = () => {
                 <Input.TextArea rows={4} placeholder="กรอกที่อยู่ของคุณ" />
               </Form.Item>
             </Col>
+
+
 
           </Row>
 
