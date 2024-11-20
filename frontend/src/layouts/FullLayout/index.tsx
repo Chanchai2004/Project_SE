@@ -13,6 +13,8 @@ import Counter1 from "../../pages/counter/Counter1";
 import Counter2 from "../../pages/counter/Counter2";
 import Admin1 from "../../pages/admin/Admin1";
 import Admin2 from "../../pages/admin/Admin2";
+import Pharmacy1 from "../../pages/pharmacy/Pharmacy1";
+import Pharmacy2 from "../../pages/pharmacy/Pharmacy2";
 
 import { Navigate } from "react-router-dom";
 
@@ -21,6 +23,7 @@ import NurseSidebar from "../../components/Sider/NurseSidebar";
 import FinanceSidebar from "../../components/Sider/FinanceSidebar";
 import CounterSidebar from "../../components/Sider/CounterSidebar";
 import AdminSidebar from "../../components/Sider/AdminSidebar";
+import PharmacySidebar from "../../components/Sider/PharmacySidebar";
 
 const { Content } = Layout;
 
@@ -46,6 +49,9 @@ const FullLayout: React.FC = () => {
     } else if (position === "Admin") {
       path = "/admin";
       return <AdminSidebar />;
+    } else if (position === "Pharmacy") {
+      path = "/pharmacy";
+      return <PharmacySidebar />;
     } else {
       return null; // กรณีที่ไม่พบตำแหน่ง
     }
@@ -88,6 +94,8 @@ const FullLayout: React.FC = () => {
                 <Route path="/counter2" element={<Counter2 />} />
                 <Route path="/admin" element={<Admin1 />} />
                 <Route path="/admin2" element={<Admin2 />} />
+                <Route path="/pharmacy" element={<Pharmacy1 />} />
+                <Route path="/pharmacy2" element={<Pharmacy2 />} />
               </Routes>
             </div>
           </Content>

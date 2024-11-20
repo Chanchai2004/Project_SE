@@ -48,6 +48,10 @@ const Login: React.FC = () => {
           case "Admin":
             redirectPath = "/admin";
             break;
+          case "Pharmacy":
+            redirectPath = "/pharmacy";
+            break;
+            
           default:
             redirectPath = "/login";
         }

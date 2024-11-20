@@ -5,6 +5,7 @@ import LoginRoutes from "../routes/LoginRoutes";
 import FinanceRoutes from "./FinanceRoutes";
 import CounterRoutes from "./CounterRoutes";
 import AdminRoutes from "./AdminRoutes";
+import PharmacyRoutes from "./PharmacyRoutes";
 
 import { useNavigate } from 'react-router-dom';
 
@@ -35,7 +36,10 @@ function ConfigRoutes() {
     } else if (position === "Finance Staff") {
       
       routes = FinanceRoutes(); // NurseRoutes ต้องคืนค่า RouteObject[]
- 
+
+    } else if (position === "Pharmacy") {
+      
+      routes = PharmacyRoutes(); // NurseRoutes ต้องคืนค่า RouteObject[]
     } else {
       console.log("this in routes login");
       routes = [LoginRoutes()]; // LoginRoutes ต้องคืนค่า RouteObject[]
