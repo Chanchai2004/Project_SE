@@ -26,6 +26,9 @@ func main() {
 	// เส้นทางที่ไม่ต้องตรวจสอบโทเค็น เช่นการลงชื่อเข้าใช้
 	r.POST("/auth/signin", controller.EmployeeSignin)
 
+	r.POST("/reset-password", controller.ResetPasswordController)
+	r.POST("/validate-reset-token", controller.ValidateResetTokenController)
+
 	// กลุ่มเส้นทางที่ต้องตรวจสอบโทเค็น
 	protected := r.Group("/")
 	protected.Use(middlewares.Authorizes()) // เรียกใช้ Authorizes middleware เพื่อเช็คโทเค็น
@@ -70,6 +73,7 @@ func main() {
 		protected.GET("/employee/:id", controller.GetEmployee)
 		protected.POST("/employees", controller.CreateEmployee)
 		protected.PATCH("/employee/:id", controller.UpdateEmployee)
+		protected.PATCH("/employeereset", controller.ResetPassword)
 		protected.DELETE("/employee/:id", controller.DeleteEmployee)
 
 		// Disease Routes

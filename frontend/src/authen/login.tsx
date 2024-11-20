@@ -107,7 +107,7 @@ const Login: React.FC = () => {
                 <Button type="primary" htmlType="submit" className="login-form-button" style={{ width: '100%' }}>
                   Log in
                 </Button>
-                Or <a onClick={() => navigate("/signup")}>signup now!</a>
+                Or <a onClick={() => navigate("/resetpassword")}>signup now!</a>
               </Form.Item>
             </Form>
           </Card>

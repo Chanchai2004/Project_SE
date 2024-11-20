@@ -42,4 +42,8 @@ type Employee struct {
 
 	Profile  string `json:"profile" gorm:"type:longtext"`
 	Password string `json:"password"`
+
+	// ฟิลด์สำหรับ Reset Token
+	ResetToken       string    `gorm:"size:36" json:"reset_token"`         // UUID ขนาด 36 ตัว
+	ResetTokenExpiry time.Time `json:"reset_token_expiry"`                 // เวลาหมดอายุของโทเค็น
 }

@@ -268,6 +268,78 @@ async function listBloodGroups() {
   return res; // คืนค่าผลลัพธ์ที่ได้จาก API
 }
 
+async function resetApi(payload: any) {
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  };
+
+  const response = await fetch(`${apiUrl}/reset-password`, requestOptions)
+    .then(async (response) => {
+      const data = await response.json(); // อ่าน JSON ของ response
+      return { status: response.status, data }; // รวม status และ data
+    })
+    .catch((error) => {
+      console.error("Error resetting:", error);
+      return { status: null, data: null }; // กรณีเกิดข้อผิดพลาด
+    });
+
+  return response; // คืนค่า object {status, data}
+}
+
+// ฟังก์ชันสำหรับเรียกใช้ API Validate
+async function validateApi(payload: any) {
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  };
+
+  const response = await fetch(`${apiUrl}/validate-reset-token`, requestOptions)
+    .then(async (response) => {
+      const data = await response.json(); // อ่าน JSON ของ response
+      return { status: response.status, data }; // รวม status และ data
+    })
+    .catch((error) => {
+      console.error("Error validating:", error);
+      return { status: null, data: null }; // กรณีเกิดข้อผิดพลาด
+    });
+
+  return response; // คืนค่า object {status, data}
+}
+
+// ฟังก์ชันสำหรับ Reset Password
+async function resetPassword(id: number, newPassword: string) {
+  const requestOptions = {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      id: id, // ID ของ Employee
+      new_password: newPassword, // รหัสผ่านใหม่
+    }),
+  };
+
+  const response = await fetch(`${apiUrl}/employeereset`, requestOptions)
+    .then(async (response) => {
+      const data = await response.json(); // อ่าน JSON ของ response
+      return { status: response.status, data }; // รวม status และ data
+    })
+    .catch((error) => {
+      console.error("Error resetting password:", error);
+      return { status: null, data: null }; // กรณีเกิดข้อผิดพลาด
+    });
+
+  return response; // คืนค่า object {status, data}
+}
+
+
+
+
 
 export {
   createEmployee,
@@ -281,4 +353,7 @@ export {
   authenticateUser,
   getEmployeeById,
   listBloodGroups,
+  validateApi,
+  resetApi,
+  resetPassword
 };

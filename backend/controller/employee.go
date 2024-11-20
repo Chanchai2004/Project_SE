@@ -367,3 +367,54 @@ func UpdateEmployee(c *gin.Context) {
 	})
 }
 
+func ResetPassword(c *gin.Context) {
+    // โครงสร้างสำหรับรับข้อมูลจาก JSON
+    var resetPayload struct {
+        ID          uint   `json:"id"`
+        NewPassword string `json:"new_password"`
+    }
+
+    // Bind JSON Payload
+    if err := c.ShouldBindJSON(&resetPayload); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+        return
+    }
+
+    // ดึงข้อมูล Employee ตาม ID
+    db := config.DB()
+    var existingEmployee entity.Employee
+    if err := db.First(&existingEmployee, resetPayload.ID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Employee not found"})
+        return
+    }
+
+    // ตรวจสอบความถูกต้องของรหัสผ่านใหม่
+    if resetPayload.NewPassword == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "New password is required"})
+        return
+    }
+
+    // แฮชรหัสผ่านใหม่
+    hashedPassword, err := config.HashPassword(resetPayload.NewPassword)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+        return
+    }
+
+    // อัปเดตรหัสผ่าน และล้าง ResetToken
+    existingEmployee.Password = hashedPassword
+    existingEmployee.ResetToken = ""               // Clear ResetToken
+    existingEmployee.ResetTokenExpiry = time.Time{} // Clear ResetTokenExpiry
+
+    // บันทึกการเปลี่ยนแปลงในฐานข้อมูล
+    if err := db.Save(&existingEmployee).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+        return
+    }
+
+    // ตอบกลับสำเร็จ
+    c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+
+
