@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { resetApi, validateApi, resetPassword } from "../services/https";
 import { Form, Input, Button, Card, Typography, Row, Col, message } from "antd";
 import bg from "../assets/bg3.png"; // รูปพื้นหลัง
-
+import { MailOutlined } from "@ant-design/icons"; // นำเข้า icon
 const { Title, Text } = Typography;
 
 const ResetPass: React.FC = () => {
@@ -110,7 +110,9 @@ const ResetPass: React.FC = () => {
             backgroundColor: "rgba(255, 255, 255, 0.8)", // พื้นหลังโปร่งแสง
             border: "1px solid rgba(255, 255, 255, 0.3)",
           }}
-        >
+        ><Row justify="center" style={{ marginBottom: 20 }}>
+        <MailOutlined style={{ fontSize: 100, color: "#0288d1" }} />
+      </Row>
           <Row justify="center">
             <Col>
               <Title level={3} style={{ textAlign: "center", marginBottom: 20, color: "black" }}>
