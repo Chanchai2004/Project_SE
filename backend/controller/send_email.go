@@ -13,9 +13,10 @@ func SendEmail(to, subject, body string) error {
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
-	// เนื้อหาอีเมล
+	// เนื้อหาอีเมลพร้อม Header สำหรับ HTML
 	msg := []byte("To: " + to + "\r\n" +
 		"Subject: " + subject + "\r\n" +
+		"Content-Type: text/html; charset=\"UTF-8\"\r\n" + // ระบุว่าเป็น HTML
 		"\r\n" +
 		body + "\r\n")
 
@@ -32,3 +33,4 @@ func SendEmail(to, subject, body string) error {
 	fmt.Println("Email sent successfully to:", to)
 	return nil
 }
+

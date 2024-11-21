@@ -103,12 +103,12 @@ const DoctorSidebar: React.FC = () => {
         </Menu.Item>
 
         <Menu.Item
-          key="option1"
+          key="doctor3"
           icon={<PieChartOutlined />}
           style={{ color: "#ffffff" }}
         >
-          <Link to="/option1" style={{ color: "#ffffff" }}>
-            Option 1
+          <Link to="/doctor3" style={{ color: "#ffffff" }}>
+          Doctor3
           </Link>
         </Menu.Item>
 

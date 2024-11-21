@@ -41,6 +41,12 @@ func CreateEmployee(c *gin.Context) {
 		return
 	}
 
+	if err := db.Where("email = ?", input.Email).First(&existingEmployee).Error; err == nil {
+		fmt.Println("Email already exists:", input.Email)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+		return
+	}
+
 	// ตรวจสอบ Foreign Keys (Gender, Position, Department, Status, Specialist, BloodGroup)
 	var gender entity.Gender
 	if err := db.First(&gender, input.GenderID).Error; err != nil {

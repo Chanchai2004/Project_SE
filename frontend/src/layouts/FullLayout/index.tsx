@@ -5,6 +5,7 @@ import { Breadcrumb, Layout, theme, message } from "antd";
 
 import Doctor1 from "../../pages/doctor/Doctor1";
 import Doctor2 from "../../pages/doctor/Doctor2";
+import Doctor3 from "../../pages/doctor/Doctor3";
 import Nurse1 from "../../pages/nurse/Nurse1";
 import Nurse2 from "../../pages/nurse/Nurse2";
 import Finance1 from "../../pages/finance/Finance1";
@@ -86,6 +87,7 @@ const FullLayout: React.FC = () => {
                 <Route path="/" element={<Navigate to={path} replace />} />
                 <Route path="/doctor" element={<Doctor1 />} />
                 <Route path="/doctor2" element={<Doctor2 />} />
+                <Route path="/doctor3" element={<Doctor3 />} />
                 <Route path="/nurse" element={<Nurse1 />} />
                 <Route path="/nurse2" element={<Nurse2 />} />
                 <Route path="/finance" element={<Finance1 />} />
@@ -96,6 +98,7 @@ const FullLayout: React.FC = () => {
                 <Route path="/admin2" element={<Admin2 />} />
                 <Route path="/pharmacy" element={<Pharmacy1 />} />
                 <Route path="/pharmacy2" element={<Pharmacy2 />} />
+
               </Routes>
             </div>
           </Content>

@@ -5,6 +5,7 @@ import FullLayout from "../layouts/FullLayout";
 
 const Doctor1 = Loadable(lazy(() => import("../pages/doctor/Doctor1")));
 const Doctor2 = Loadable(lazy(() => import("../pages/doctor/Doctor2")));
+const Doctor3 = Loadable(lazy(() => import("../pages/doctor/Doctor3")));
 
 const DoctorRoutes = (): RouteObject[] => {
   return [
@@ -19,6 +20,10 @@ const DoctorRoutes = (): RouteObject[] => {
         {
           path: "/doctor2",
           element: <Doctor2 />,
+        },
+        {
+          path: "/doctor3",
+          element: <Doctor3 />,
         },
       ],
     },
