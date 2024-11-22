@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ImgCrop from "antd-img-crop";
 import Papa from "papaparse";
+import { Spin } from "antd";
 import sendEmail from "../../components/SendEmail/email_register";
 import { Table, Input, Modal, Upload, Typography, Form, DatePicker, Select, Row, Col, Button, Space, message } from "antd";
 import { UploadOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
@@ -17,7 +18,7 @@ import {
   listDiseases,
   getEmployeeById,
 } from "../../services/https";
-
+import moment from "moment";
 const { Text } = Typography;
 const { Option } = Select;
 
@@ -29,6 +30,8 @@ const ReadCSV: React.FC = () => {
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [genders, setGenders] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -44,12 +47,21 @@ const ReadCSV: React.FC = () => {
   const [formData, setFormData] = useState<any>({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [savedRows, setSavedRows] = useState<any[]>([]);
 
   useEffect(() => {
-    // ดึงข้อมูลจาก API และ localStorage เมื่อหน้าโหลด
+    // Fetch data from API and localStorage when the component is mounted
     const fetchData = async () => {
       try {
-        const [genderRes, positionRes, departmentRes, statusRes, specialistRes, bloodGroupRes, diseaseRes] = await Promise.all([
+        const [
+          genderRes,
+          positionRes,
+          departmentRes,
+          statusRes,
+          specialistRes,
+          bloodGroupRes,
+          diseaseRes,
+        ] = await Promise.all([
           listGenders(),
           listPositions(),
           listDepartments(),
@@ -87,40 +99,150 @@ const ReadCSV: React.FC = () => {
         console.error("Error fetching employee data:", error);
       }
     };
-    
   
-    // ดึงข้อมูลตารางจาก localStorage
-    const loadUploadedRows = () => {
-      try {
-        const storedRows = localStorage.getItem("uploadedRows");
-        if (storedRows) {
-          const parsedRows = JSON.parse(storedRows);
-    
-          // ตั้งค่า columns ใหม่อีกครั้ง
-          setColumns([
-            { title: "First Name", dataIndex: "firstname", key: "firstname" },
-            { title: "Last Name", dataIndex: "lastname", key: "lastname" },
-            { title: "Status", dataIndex: "status", key: "status" },
-          ]);
-    
-          // ตั้งค่า rows
-          setRows(parsedRows);
-        } else {
-          console.log("No uploaded rows found in localStorage.");
-        }
-      } catch (error) {
-        console.error("Error loading uploaded rows from localStorage:", error);
-      }
-    };
-    
-  
-    // เรียกใช้ฟังก์ชันทั้งหมดเมื่อ component ถูก mount
+    // Call all functions when the component is mounted
     fetchData();
     fetchEmployeeData();
     loadUploadedRows();
-  }, [form]);
+  }, [form, savedRows]);
+
+
+  const loadUploadedRows = () => {
+    try {
+      const storedRows = localStorage.getItem("uploadedRows");
+      const storedSavedRows = localStorage.getItem("savedRows");
+  
+      let parsedSavedRows = [];
+      if (storedSavedRows) {
+        parsedSavedRows = JSON.parse(storedSavedRows); // Load savedRows from localStorage
+      }
+  
+      if (storedRows) {
+        const parsedRows = JSON.parse(storedRows);
+  
+        const mergedRows = parsedRows.map((row: any) => {
+          const savedRow = parsedSavedRows.find(
+            (saved: any) =>
+              saved.firstname === row.firstname && saved.lastname === row.lastname
+          );
+          return savedRow ? { ...row, ...savedRow } : row; // Use savedRow if it exists
+        });
+  
+        const updatedRows = mergedRows.map((row: any) => ({
+          ...row,
+          formStatus: checkFormCompletion(row) ? "สมบูรณ์" : "ไม่สมบูรณ์", // ตรวจสอบฟอร์ม
+        }));
+  
+        setColumns([
+          { title: "First Name", dataIndex: "firstname", key: "firstname" },
+          { title: "Last Name", dataIndex: "lastname", key: "lastname" },
+          { title: "Email", dataIndex: "email", key: "email" },
+          { title: "Form Status", dataIndex: "formStatus", key: "formStatus" },
+        ]);
+  
+        setRows(updatedRows);
+        console.log("Rows loaded successfully:", updatedRows);
+      } else {
+        console.log("No uploaded rows found in localStorage.");
+      }
+    } catch (error) {
+      console.error("Error loading uploaded rows from localStorage:", error);
+    }
+  };
   
   
+  
+  const checkFormCompletion = (row: any) => {
+    const requiredFields = [
+      "firstname",
+      "lastname",
+      "nationalid",
+      "email",
+      "phone",
+      "genderid",
+      "bloodgroup",
+      "username",
+      "password",
+      "professionallicense",
+      "graduate",
+      "position",
+      "department",
+      "specialist",
+      "status",
+      "address",
+      "dateofbirth", // เพิ่ม dateofbirth
+      "profile", // เพิ่ม profile
+    ];
+  
+    // ตรวจสอบว่าทุกฟิลด์ที่จำเป็นถูกกรอกครบ (ไม่ว่าง)
+    return requiredFields.every((field) => row[field]?.toString().trim() !== "");
+  };
+  
+
+
+
+
+
+
+const handleModalOk = () => {
+  const formValues = form.getFieldsValue(true); // ดึงค่าทั้งหมดจากฟอร์ม
+  console.log("Form Values on Save:", formValues);
+
+  // แปลงคีย์จากฟอร์มให้ตรงกับโครงสร้างของ rows
+  const normalizedFormValues = {
+    firstname: formValues.FirstName,
+    lastname: formValues.LastName,
+    nationalid: formValues.NationalID,
+    email: formValues.Email,
+    phone: formValues.Phone,
+    genderid: formValues.GenderID,
+    bloodgroup: formValues.BloodGroupID,
+    diseases: formValues.Diseases?.join(",") || "",
+    username: formValues.Username,
+    password: formValues.Password,
+    professionallicense: formValues.ProfessionalLicense,
+    graduate: formValues.Graduate,
+    position: formValues.PositionID,
+    department: formValues.DepartmentID,
+    specialist: formValues.SpecialistID,
+    status: formValues.StatusID,
+    address: formValues.Address,
+    profile: fileList[0]?.thumbUrl || "", // ดึงค่า Profile (ถ้ามี)
+    dateofbirth: formValues.DateOfBirth
+      ? formValues.DateOfBirth.format("YYYY-MM-DD HH:mm:ss") // แปลงวันเกิดเป็นรูปแบบที่ต้องการ
+      : null, // หากไม่มีให้เป็น null
+  };
+
+  // อัปเดตแถวใน rows
+  const updatedRows = rows.map((row) =>
+    row.firstname === formData.firstname && row.lastname === formData.lastname
+      ? { ...row, ...normalizedFormValues }
+      : row
+  );
+
+  setRows(updatedRows); // อัปเดต rows
+
+  // อัปเดต savedRows
+  const updatedSavedRows = savedRows.filter(
+    (row) =>
+      row.firstname !== formData.firstname || row.lastname !== formData.lastname
+  );
+  updatedSavedRows.push(normalizedFormValues);
+  setSavedRows(updatedSavedRows);
+
+  // อัปเดต localStorage
+  localStorage.setItem("uploadedRows", JSON.stringify(updatedRows));
+  localStorage.setItem("savedRows", JSON.stringify(updatedSavedRows));
+
+  console.log("Updated Rows:", updatedRows);
+  console.log("Updated Saved Rows:", updatedSavedRows);
+
+  setIsModalVisible(false); // ปิด Modal
+};
+
+  
+  
+
   const normalizeKey = (key: string) => key.trim().toLowerCase();
   
   const onChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
@@ -147,6 +269,12 @@ const ReadCSV: React.FC = () => {
       message.error("Please upload a valid CSV file.");
       return false;
     }
+
+    setIsLoading(true);
+
+    localStorage.removeItem("uploadedRows");
+    localStorage.removeItem("savedRows");
+
   
     Papa.parse(file, {
       header: true,
@@ -157,25 +285,47 @@ const ReadCSV: React.FC = () => {
           if (data.length > 0) {
             const normalizedData = data.map((row) =>
               Object.keys(row).reduce((acc, key) => {
-                acc[normalizeKey(key)] = row[key];
+                acc[normalizeKey(key)] = row[key]; // Normalize all keys to lowercase
                 return acc;
               }, {} as any)
             );
   
-            const cleanData = normalizedData.map((row) => ({
-              ...row,
-              status: row.firstname && row.lastname ? "Ready" : "Not Ready",
-            }));
+            const cleanData = normalizedData.map((row) => {
+              // ตรวจสอบ dateofbirth ว่าตรง format หรือไม่
+              const isValidDate =
+                typeof row.dateofbirth === "string" &&
+                /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+\d{2}:\d{2}$/.test(
+                  row.dateofbirth
+                );
+  
+              // ตรวจสอบ profile ว่าเป็น Base64 หรือไม่
+              const isValidProfile =
+                typeof row.profile === "string" &&
+                /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(row.profile);
+  
+              return {
+                ...row,
+                dateofbirth: isValidDate ? row.dateofbirth : "", // หากไม่ตรง format ให้เป็นค่าว่าง
+                profile: isValidProfile ? row.profile : "", // หากไม่ใช่ Base64 ให้เป็นค่าว่าง
+                formStatus: checkFormCompletion(row) ? "สมบูรณ์" : "ไม่สมบูรณ์", // ตรวจสอบฟอร์ม
+              };
+            });
   
             setColumns([
               { title: "First Name", dataIndex: "firstname", key: "firstname" },
               { title: "Last Name", dataIndex: "lastname", key: "lastname" },
-              { title: "Status", dataIndex: "status", key: "status" },
+              { title: "Email", dataIndex: "email", key: "email" },
+              { title: "Form Status", dataIndex: "formStatus", key: "formStatus" },
             ]);
   
             setRows(cleanData);
+
+            setTimeout(() => {
+              setIsLoading(false); // ปิด loading
+              window.location.reload(); // รีเฟรชหน้า
+            }, 500);
   
-            // เก็บข้อมูลใน localStorage
+            // Save to localStorage
             localStorage.setItem("uploadedRows", JSON.stringify(cleanData));
           } else {
             message.warning("No data found in the file.");
@@ -190,23 +340,42 @@ const ReadCSV: React.FC = () => {
   };
   
   
+  
 
   const showModal = (row: any) => {
+  
+
+    const mappedRow = {
+      FirstName: row.firstname,
+      LastName: row.lastname,
+      NationalID: row.nationalid,
+      Email: row.email,
+      Phone: row.phone,
+      GenderID: row.genderid,
+      BloodGroupID: row.bloodgroup,
+      Diseases: row.diseases?.split(",") || [],
+      Username: row.username,
+      Password: row.password,
+      ProfessionalLicense: row.professionallicense,
+      Graduate: row.graduate,
+      PositionID: row.position,
+      DepartmentID: row.department,
+      SpecialistID: row.specialist,
+      StatusID: row.status,
+      Address: row.address,
+      DateOfBirth: row.dateofbirth ? moment(row.dateofbirth, "YYYY-MM-DD HH:mm:ss") : undefined, // แปลงเป็น moment
+      Profile:  row.profile, // เติมเฉพาะค่า valid
+    };
+  
+    form.setFieldsValue(mappedRow);
     setFormData(row);
-    form.setFieldsValue(row);
     setIsModalVisible(true);
   };
+  
+  
 
-  const handleModalOk = () => {
-    const formValues = form.getFieldsValue();
-    const updatedRows = rows.map((row) =>
-      row.firstname === formData.firstname && row.lastname === formData.lastname
-        ? { ...row, ...formValues }
-        : row
-    );
-    setRows(updatedRows);
-    setIsModalVisible(false);
-  };
+  
+
 
   const handleModalCancel = () => {
     setIsModalVisible(false);
@@ -254,6 +423,12 @@ const ReadCSV: React.FC = () => {
   return (
     <div style={{ padding: "20px" }}>
       {contextHolder}
+      {isLoading ? (
+      <div style={{ textAlign: "center", marginTop: "20%" }}>
+        <Spin size="large" tip="Loading..." />
+      </div>
+    ) : (
+      <>
       <h1 style={{ textAlign: "center", color: "#1890ff" }}>Upload and Manage Data</h1>
   
       {/* Search and Upload Section */}
@@ -278,37 +453,67 @@ const ReadCSV: React.FC = () => {
       <Table
   dataSource={rows.filter(
     (row) =>
-      row.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      row.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
+      row.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) || // ค้นหาโดย First Name
+      row.lastname?.toLowerCase().includes(searchTerm.toLowerCase()) || // ค้นหาโดย Last Name
+      row.email?.toLowerCase().includes(searchTerm.toLowerCase()) // ค้นหาโดย Email
   )}
-  columns={columns}
-  rowKey={(record, index) => index.toString()} // ใช้ index เป็น unique key
-  pagination={{ pageSize: 5 }}
-  locale={{
-    emptyText: "No Data Available",
-  }}
+  columns={[
+    {
+      title: "First Name",
+      dataIndex: "firstname",
+      key: "firstname",
+      render: (text) => <Text>{text || "-"}</Text>, // แสดง "-" ถ้าไม่มีข้อมูล
+    },
+    {
+      title: "Last Name",
+      dataIndex: "lastname",
+      key: "lastname",
+      render: (text) => <Text>{text || "-"}</Text>, // แสดง "-" ถ้าไม่มีข้อมูล
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+      render: (text) => <Text>{text || "-"}</Text>, // แสดง "-" ถ้าไม่มีข้อมูล
+    },
+    {
+      title: "Form Status", // เพิ่ม Status Column
+      dataIndex: "formStatus",
+      key: "formStatus",
+      render: (text) => (
+        <Text style={{ color: text === "สมบูรณ์" ? "green" : "red" }}>
+          {text || "ไม่สมบูรณ์"}
+        </Text>
+      ), // ใช้สีเขียวสำหรับ Ready และสีแดงสำหรับ Not Ready
+    },
+  ]}
+  rowKey={(record) => record.firstname + record.lastname} // ใช้ First Name + Last Name เป็น Key
+  
   onRow={(record) => ({
     onClick: () => {
       console.log("Row clicked:", record); // Debug: Log clicked row
-      showModal(record); // Show modal with record data
+      showModal(record); // เปิด Modal พร้อมข้อมูลของแถว
     },
   })}
   bordered
   style={{
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
     borderRadius: "8px",
+    marginTop: "20px", // เพิ่มระยะห่างจากส่วนบน
   }}
 />
+
+
 
   
       {/* Edit Modal */}
       <Modal
         title="Edit Row Details"
         visible={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
+        onOk={handleModalOk} // เรียกใช้ handleModalOk เมื่อกดปุ่ม Save
+        onCancel={handleModalCancel} // เรียกใช้ handleModalCancel เมื่อกดปุ่ม Cancel
         okText="Save"
-        width="90%" // กำหนดความกว้างเป็น 80% ของหน้าจอ
+        width="90%" // กำหนดความกว้างเป็น 90% ของหน้าจอ
       > 
         <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
           <Row gutter={[16, 16]}>
@@ -354,15 +559,16 @@ const ReadCSV: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={4}>
-              <Form.Item
-                label="วันเกิด"
-                name="DateOfBirth"
-                rules={[{ required: true, message: "กรุณาเลือกวันเกิด!" }]}
-              >
-                <DatePicker format="YYYY-MM-DD" />
-              </Form.Item>
-            </Col>
+            <Form.Item
+  label="วันเกิด"
+  name="DateOfBirth"
+  rules={[{ required: true, message: "กรุณาเลือกวันเกิด!" }]}
+>
+  <DatePicker format="YYYY-MM-DD HH:mm:ss" />
+</Form.Item>
+
+
+
 
 
             <Col span={8}>
@@ -639,6 +845,8 @@ const ReadCSV: React.FC = () => {
       >
         <img alt="Preview" style={{ width: "100%" }} src={previewImage} />
       </Modal>
+    </>
+  )}
     </div>
   );
   
