@@ -1,65 +1,110 @@
-import React, { useState } from "react";
-import {
-  Table,
-  Input,
-  Upload,
-  Typography,
-  Row,
-  Col,
-  Button,
-  Form,
-  message,
-} from "antd";
-import { UploadOutlined, SearchOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import ImgCrop from "antd-img-crop";
 import Papa from "papaparse";
-import EditRowModal from "../../components/Table/EditRowModal"; // Import the modal component
+import sendEmail from "../../components/SendEmail/email_register";
+import { Table, Input, Modal, Upload, Typography, Form, DatePicker, Select, Row, Col, Button, Space, message } from "antd";
+import { UploadOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import { useNavigate, Link } from "react-router-dom";
+import type { UploadFile, UploadProps } from "antd";
+import {
+  createEmployee,
+  listGenders,
+  listPositions,
+  listDepartments,
+  listStatuses,
+  listSpecialists,
+  listBloodGroups,
+  listDiseases,
+  getEmployeeById,
+} from "../../services/https";
 
 const { Text } = Typography;
+const { Option } = Select;
 
-const Admin2: React.FC = () => {
+const ReadCSV: React.FC = () => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [genders, setGenders] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [specialists, setSpecialists] = useState([]);
+  const [bloodGroups, setBloodGroups] = useState([]);
+  const [diseases, setDiseases] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+
   const [columns, setColumns] = useState<any[]>([]);
   const [rows, setRows] = useState<any[]>([]);
-  const [filteredRows, setFilteredRows] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [fileList, setFileList] = useState<any[]>([]); // For EditRowModal
 
-  // Dropdown options for EditRowModal
-  const [genders] = useState([
-    { ID: 1, gender_name: "Male" },
-    { ID: 2, gender_name: "Female" },
-  ]);
-  const [positions] = useState([
-    { ID: 1, position_name: "Manager" },
-    { ID: 2, position_name: "Staff" },
-  ]);
-  const [departments] = useState([
-    { ID: 1, department_name: "HR" },
-    { ID: 2, department_name: "IT" },
-  ]);
-  const [statuses] = useState([
-    { ID: 1, status_name: "Active" },
-    { ID: 2, status_name: "Inactive" },
-  ]);
-  const [specialists] = useState([
-    { ID: 1, specialist_name: "Engineer" },
-    { ID: 2, specialist_name: "Designer" },
-  ]);
-  const [bloodGroups] = useState([
-    { ID: 1, blood_group: "A" },
-    { ID: 2, blood_group: "B" },
-    { ID: 3, blood_group: "O" },
-    { ID: 4, blood_group: "AB" },
-  ]);
-  const [diseases] = useState([
-    { ID: 1, disease_name: "Diabetes" },
-    { ID: 2, disease_name: "Hypertension" },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [genderRes, positionRes, departmentRes, statusRes, specialistRes, bloodGroupRes, diseaseRes] = await Promise.all([
+          listGenders(),
+          listPositions(),
+          listDepartments(),
+          listStatuses(),
+          listSpecialists(),
+          listBloodGroups(),
+          listDiseases(),
+        ]);
 
-  // Handle CSV Upload and Parsing
+        setGenders(genderRes || []);
+        setPositions(positionRes || []);
+        setDepartments(departmentRes || []);
+        setStatuses(statusRes || []);
+        setSpecialists(specialistRes || []);
+        setBloodGroups(bloodGroupRes || []);
+        setDiseases(diseaseRes || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    const fetchEmployeeData = async () => {
+      const employeeId = localStorage.getItem("id");
+      if (employeeId) {
+        const employee = await getEmployeeById(employeeId);
+        if (employee) {
+          form.setFieldsValue({
+            FirstName: employee.first_name,
+            LastName: employee.last_name,
+          });
+        }
+      }
+    };
+
+    fetchData();
+    fetchEmployeeData();
+  }, [form]);
+
   const normalizeKey = (key: string) => key.trim().toLowerCase();
+
+  const onChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
+    setFileList(newFileList.slice(-1)); // Limit to 1 file
+  };
+
+  const onPreview = async (file: UploadFile) => {
+    if (!file.url && !file.preview) {
+      file.preview = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj as Blob);
+        reader.onload = () => resolve(reader.result as string);
+      });
+    }
+    setPreviewImage(file.url || (file.preview as string));
+    setPreviewVisible(true);
+    setPreviewTitle(file.name || file.url!.substring(file.url!.lastIndexOf("/") + 1));
+  };
 
   const handleFileUpload = (file: File) => {
     if (file.type !== "text/csv") {
@@ -80,9 +125,8 @@ const Admin2: React.FC = () => {
               }, {} as any)
             );
 
-            const cleanData = normalizedData.map((row, index) => ({
+            const cleanData = normalizedData.map((row) => ({
               ...row,
-              id: index, // Add unique ID for row key
               status: row.firstname && row.lastname ? "Ready" : "Not Ready",
             }));
 
@@ -92,37 +136,31 @@ const Admin2: React.FC = () => {
               { title: "Status", dataIndex: "status", key: "status" },
             ]);
             setRows(cleanData);
-            setFilteredRows(cleanData);
           } else {
-            message.warning("No data found in the uploaded file.");
+            message.warning("No data found in the file.");
           }
         } else {
-          message.error("Error parsing CSV file.");
+          message.error("Error parsing CSV.");
         }
       },
     });
     return false;
   };
 
-  // Show modal for row editing
   const showModal = (row: any) => {
     setFormData(row);
     form.setFieldsValue(row);
     setIsModalVisible(true);
   };
 
-  // Handle modal save
-  const handleModalOk = (updatedRow: any) => {
+  const handleModalOk = () => {
+    const formValues = form.getFieldsValue();
     const updatedRows = rows.map((row) =>
-      row.id === updatedRow.id ? { ...row, ...updatedRow } : row
+      row.firstname === formData.firstname && row.lastname === formData.lastname
+        ? { ...row, ...formValues }
+        : row
     );
     setRows(updatedRows);
-    setFilteredRows(
-      updatedRows.filter((row) =>
-        row.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        row.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
     setIsModalVisible(false);
   };
 
@@ -130,29 +168,55 @@ const Admin2: React.FC = () => {
     setIsModalVisible(false);
   };
 
-  // Handle search
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    setFilteredRows(
-      rows.filter(
-        (row) =>
-          row.firstname?.toLowerCase().includes(term.toLowerCase()) ||
-          row.lastname?.toLowerCase().includes(term.toLowerCase())
-      )
-    );
+  const onFinish = async (values: any) => {
+    setIsSubmitting(true);
+    try {
+      const formattedValues = {
+        first_name: values.FirstName,
+        last_name: values.LastName,
+        date_of_birth: values.DateOfBirth.format("YYYY-MM-DD"),
+        email: values.Email,
+        phone: values.Phone,
+        address: values.Address,
+        username: values.Username,
+        professional_license: values.ProfessionalLicense,
+        graduate: values.Graduate,
+        password: values.Password,
+        gender_id: values.GenderID,
+        position_id: values.PositionID,
+        department_id: values.DepartmentID,
+        status_id: values.StatusID,
+        specialist_id: values.SpecialistID,
+        profile: fileList[0]?.thumbUrl || "",
+        blood_group_id: values.BloodGroupID,
+        diseases: values.Diseases || [],
+      };
+
+      const result = await createEmployee(formattedValues);
+      if (result.status === 201) {
+        //sendEmail({ email: values.Email, username: values.Username });
+        message.success("Data saved successfully!");
+        navigate("/admin");
+      } else {
+        message.error("Error saving data.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div style={{ padding: "20px" }}>
+      {contextHolder}
       <h1 style={{ textAlign: "center", color: "#1890ff" }}>Upload and Manage Data</h1>
-
-      {/* Search Bar */}
       <Row gutter={[16, 16]} style={{ marginBottom: "20px" }}>
         <Col span={12}>
           <Input
             placeholder="Search by Name"
             prefix={<SearchOutlined />}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </Col>
         <Col span={12}>
@@ -163,46 +227,34 @@ const Admin2: React.FC = () => {
           </Upload>
         </Col>
       </Row>
-
-      {/* Data Table */}
       <Table
-        dataSource={filteredRows}
+        dataSource={rows.filter(
+          (row) =>
+            row.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            row.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
+        )}
         columns={columns}
-        rowKey={(record) => record.id} // Use unique ID
+        rowKey={(record) => record.firstname + record.lastname}
         pagination={{ pageSize: 5 }}
-        onRow={(record) => ({
-          onClick: () => showModal(record),
-        })}
-        bordered
-        style={{
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-          borderRadius: "8px",
-        }}
       />
-
-      {/* Modal for Editing Row */}
-      <EditRowModal
+      <Modal
+        title="Edit Row Details"
         visible={isModalVisible}
-        form={form}
-        fileList={fileList}
+        onOk={handleModalOk}
         onCancel={handleModalCancel}
-        onFinish={handleModalOk}
-        genders={genders}
-        positions={positions}
-        departments={departments}
-        statuses={statuses}
-        specialists={specialists}
-        bloodGroups={bloodGroups}
-        diseases={diseases}
-        onFileChange={({ fileList: newFileList }) => setFileList(newFileList)}
-        onPreview={(file) => {
-          // Preview logic can be implemented here
-          console.log(file);
-        }}
-        isSubmitting={false}
-      />
+        okText="Save"
+      >
+        <Form layout="vertical" form={form}>
+          <Form.Item label="First Name" name="firstname" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label="Last Name" name="lastname" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
 
-export default Admin2;
+export default ReadCSV;
