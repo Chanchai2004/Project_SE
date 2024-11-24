@@ -47,6 +47,12 @@ func CreateEmployee(c *gin.Context) {
 		return
 	}
 
+	if err := db.Where("national_id = ?", input.NationalID).First(&existingEmployee).Error; err == nil {
+		fmt.Println("NationalID already exists:", input.NationalID)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "National ID already exists"})
+		return
+	}
+
 	// ตรวจสอบ Foreign Keys (Gender, Position, Department, Status, Specialist, BloodGroup)
 	var gender entity.Gender
 	if err := db.First(&gender, input.GenderID).Error; err != nil {
